@@ -7,3 +7,6 @@ Content-Type: application/json
   "sportTypeId": "00017",
   "actionUserId": "000001"
 }
+
+### Test
+GET http://localhost:8080/test
