@@ -78,11 +78,10 @@ class SurveyCompareService() {
     }
 
     fun processExcel(sportTournamentId: String, file: MultipartFile): Boolean {
-        logger.info("$sportTournamentId, ${file.originalFilename}")
         val t = Base64.getEncoder().encodeToString(file.bytes)
-        logger.info(t.toString())
-
-        val aa: ByteArray? = Base64.getDecoder().decode(t)
+//        logger.info(t.toString())
+//
+//        val aa: ByteArray? = Base64.getDecoder().decode(t)
 //        val inputStream: InputStream = ByteArrayInputStream(aa)
 //        val fileItem: FileItem = DiskFileItem("fileData", file.contentType, true, file.originalFilename, 100000000, File(System.getProperty("java.io.tmpdir")))
 //        val multipartFile: MultipartFile = CommonsMultipartFile(fileItem)

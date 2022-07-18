@@ -57,8 +57,8 @@ class SurveyCompareController(val service: SurveyCompareService) {
 
     @GetMapping("/compare")
     fun getCompare(@Valid @RequestBody requestModel: RequestCompareCriteria): ResponseEntity<ResponseModel> {
-        logger.info("request: ${requestModel.tournamentA.tournamentId}")
-        logger.info("request: ${requestModel.tournamentB.tournamentId}")
+        logger.info("request Tournament A: ${requestModel.tournamentA.tournamentId}")
+        logger.info("request Tournament B: ${requestModel.tournamentB.tournamentId}")
         return service.compareTournament(requestModel)
     }
 }
