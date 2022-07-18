@@ -1,12 +1,29 @@
-### Search searchSportTournaments
-GET http://localhost:8080/api/v2/searchSportTournaments
+### Import Excel
+POST http://localhost:8080/api/v2/surveyCompare/import
 Content-Type: application/json
 
 {
-  "sportActId": "001",
-  "sportTypeId": "00017",
-  "actionUserId": "000001"
+  "param1": "11",
+  "param2": "22"
+}
+
+### Get List Import Excel
+GET http://localhost:8080/api/v2/surveyCompare/?sportTournamentId=000001
+Content-Type: application/json
+
+
+### Get Compare Tournament
+GET http://localhost:8080/api/v2/surveyCompare/compare
+Content-Type: application/json
+
+{
+  "tournamentA": {
+    "tournamentId": "000001"
+  },
+  "tournamentB": {
+    "tournamentId": "000002"
+  }
 }
 
 ### Test
-GET http://localhost:8080/test
+GET http://34.87.106.181:4567/rest/sportActivities
