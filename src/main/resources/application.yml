@@ -7,9 +7,16 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL5Dialect
+        format_sql: true
     generate-ddl: false
     hibernate:
       ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: true
+    #printing parameter values in order
+logging:
+  level:
+    org:
+      hibernate:
+        type: info

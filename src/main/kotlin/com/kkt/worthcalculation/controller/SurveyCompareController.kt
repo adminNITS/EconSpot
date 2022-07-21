@@ -17,8 +17,8 @@ class SurveyCompareController(val service: SurveyCompareService) {
     private val logger = LoggerFactory.getLogger(javaClass.name)
 
     @PostMapping("/excel/import")
-    fun importExcel(@Valid @RequestParam sportTournamentId: String, @RequestParam("uploadfile") file: MultipartFile): ResponseEntity<ResponseModel> {
-        logger.info("request: $sportTournamentId ${file.originalFilename}")
+    fun importExcel(@Valid @RequestParam sportTournamentId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String): ResponseEntity<ResponseModel> {
+        logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, actionUserId: $actionUserId")
         if (file.contentType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             return ResponseEntity.badRequest().body(
                 ResponseModel(
@@ -29,45 +29,20 @@ class SurveyCompareController(val service: SurveyCompareService) {
                     pagination = null
                 )
             )
-        val isSuccess: Boolean = service.processExcel(sportTournamentId, file)
-        val response: ResponseModel = if (isSuccess)
-            ResponseModel(
-                message = "Import data success",
-                status = "ok",
-                timestamp = LocalDateTime.now(),
-                data = null,
-                pagination = null
-            )
-        else
-            ResponseModel(
-                message = "Error import excel",
-                status = "error",
-                timestamp = LocalDateTime.now(),
-                data = null,
-                pagination = null
-            )
-        return ResponseEntity.ok(response)
+        return service.processExcel(sportTournamentId, file, actionUserId)
     }
 
 
     @GetMapping("/excel/download")
-    fun downloadExcel(@RequestParam sportTournamentId: String, @RequestParam excelId: String): ResponseEntity<ResponseModel> {
-        logger.info("request: $sportTournamentId, $excelId")
+    fun downloadExcel(@RequestParam sportTournamentId: String, @RequestParam excelId: String): ResponseEntity<Any> {
+        logger.info("sportTournamentId: $sportTournamentId, excelId: $excelId")
 
-        val response: ResponseModel = ResponseModel(
-                message = "Import data success",
-                status = "ok",
-                timestamp = LocalDateTime.now(),
-                data = null,
-                pagination = null
-            )
-
-        return ResponseEntity.ok(response)
+        return service.downloadExcel(sportTournamentId, excelId)
     }
 
     @GetMapping("/excel")
     fun getListImport(@Valid @RequestParam sportTournamentId: String): ResponseEntity<ResponseModel> {
-        logger.info("request: $sportTournamentId")
+        logger.info("sportTournamentId: $sportTournamentId")
         return service.getListImport(sportTournamentId)
     }
 
