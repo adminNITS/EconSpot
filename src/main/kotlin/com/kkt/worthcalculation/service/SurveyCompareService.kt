@@ -29,38 +29,14 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
     fun getListImport(sportTournamentId: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
         try {
-            val listData = mutableListOf<SurveyCompare>()
-            listData.add(
-                SurveyCompare(
-                    svCompareId = "1",
-                    sportTournamentId = sportTournamentId,
-                    svCompareExcelFileName = "test.xlsx",
-                    svCompareExcelSourceData = "binary Text",
-                    svCompareBudgetValue = "2000000",
-                    svCompareNetWorthValue = "2500000",
-                    svCompareEconomicValue = "1900000",
-                    sportTournament = getSportTournament(sportTournamentId),
-                )
-            )
-            listData.add(
-                SurveyCompare(
-                    svCompareId = "2",
-                    sportTournamentId = sportTournamentId,
-                    svCompareExcelFileName = "test.xlsx",
-                    svCompareExcelSourceData = "binary Text",
-                    svCompareBudgetValue = "2100000",
-                    svCompareNetWorthValue = "2300000",
-                    svCompareEconomicValue = "1700000",
-                    sportTournament = getSportTournament(sportTournamentId),
-                )
-            )
+
 
             response = ResponseEntity.ok(
                 ResponseModel(
                     message = TextConstant.RESP_SUCCESS_DESC,
                     status = TextConstant.RESP_SUCCESS_STATUS,
                     timestamp = LocalDateTime.now(),
-                    data = listData,
+                    data = repo.findAllBySportTournamentId(sportTournamentId),
                     pagination = null
                 )
             )
@@ -146,13 +122,27 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
     }
 
     fun downloadExcel(sportTournamentId: String, excelId: String): ResponseEntity<Any> {
-
-        val data = repo.getReferenceById("ff5f19d1-1895-487d-9915-7f5dc27ed016")
-
-        return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(data.excelContentType.toString()))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + data.excelFileName + "\"")
-            .body(data.excelData);
+        var response: ResponseEntity<Any>
+        try {
+            val data = repo.findById(excelId)
+            if (!data.isPresent) throw Exception("Excel not found!!")
+            response = ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(data.get().excelContentType.toString()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + data.get().excelFileName + "\"")
+                .body(data.get().excelData);
+        } catch (e: Exception) {
+            logger.error(e.message)
+            response = ResponseEntity.internalServerError().body(
+                ResponseModel(
+                    message = TextConstant.RESP_FAILED_DESC + "|${e.message}",
+                    status = TextConstant.RESP_FAILED_STATUS,
+                    timestamp = LocalDateTime.now(),
+                    data = null,
+                    pagination = null
+                )
+            )
+        }
+        return response
     }
 
     fun compareTournament(req: RequestCompareCriteria): ResponseEntity<ResponseModel> {

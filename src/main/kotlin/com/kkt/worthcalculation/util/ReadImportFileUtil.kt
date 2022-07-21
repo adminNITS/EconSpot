@@ -4,6 +4,7 @@ import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ExcelRowData
 import org.apache.poi.ss.usermodel.FormulaEvaluator
 import org.apache.poi.ss.usermodel.WorkbookFactory
+import org.apache.poi.ss.util.NumberToTextConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.web.multipart.MultipartFile
@@ -28,6 +29,7 @@ class ReadImportFileUtil {
                 val exTournamentBudgetValue = evaluator.evaluateInCell(xlWs.getRow(4).getCell(17))
                 val exTournamentNetWorthValue = evaluator.evaluateInCell(xlWs.getRow(4).getCell(42))
                 val exTournamentEconomicValue = evaluator.evaluateInCell(xlWs.getRow(4).getCell(43))
+
                 val exTournamentTotalSpend = evaluator.evaluateInCell(exTournamentTotalSpendSum)
 
                 if (exTournamentName.stringCellValue.isEmpty())
@@ -36,23 +38,23 @@ class ReadImportFileUtil {
                     throw ImportExcelException("exTournamentLocation is Invalid")
                 if (exTournamentPeriodDate.stringCellValue.isEmpty())
                     throw ImportExcelException("exTournamentPeriodDate is Invalid")
-                if (exTournamentTotalSpend.stringCellValue.isEmpty())
+                if (exTournamentTotalSpend.toString().isEmpty())
                     throw ImportExcelException("exTournamentTotalSpend is Invalid")
-                if (exTournamentBudgetValue.stringCellValue.isEmpty())
+                if (exTournamentBudgetValue.toString().isEmpty())
                     throw ImportExcelException("exTournamentBudgetValue is Invalid")
-                if (exTournamentNetWorthValue.stringCellValue.isEmpty())
+                if (exTournamentNetWorthValue.toString().isEmpty())
                     throw ImportExcelException("exTournamentNetWorthValue is Invalid")
-                if (exTournamentEconomicValue.stringCellValue.isEmpty())
+                if (exTournamentEconomicValue.toString().isEmpty())
                     throw ImportExcelException("exTournamentEconomicValue is Invalid")
 
                 return ExcelRowData(
                     exTournamentName = exTournamentName.stringCellValue,
                     exTournamentLocation = exTournamentLocation.stringCellValue,
                     exTournamentPeriodDate = exTournamentPeriodDate.stringCellValue.replace(" ", ""),
-                    exTournamentTotalSpend = exTournamentTotalSpend.toString(),
-                    exTournamentBudgetValue = exTournamentBudgetValue.toString(),
-                    exTournamentNetWorthValue = exTournamentNetWorthValue.toString(),
-                    exTournamentEconomicValue = exTournamentEconomicValue.toString(),
+                    exTournamentTotalSpend = NumberToTextConverter.toText(exTournamentTotalSpend.numericCellValue),
+                    exTournamentBudgetValue = NumberToTextConverter.toText(exTournamentBudgetValue.numericCellValue),
+                    exTournamentNetWorthValue = NumberToTextConverter.toText(exTournamentNetWorthValue.numericCellValue),
+                    exTournamentEconomicValue = NumberToTextConverter.toText(exTournamentEconomicValue.numericCellValue),
                 )
             }catch (e: ImportExcelException) {
                 log.error(e.message)
