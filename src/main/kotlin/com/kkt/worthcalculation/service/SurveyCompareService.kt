@@ -4,6 +4,7 @@ import com.kkt.worthcalculation.constant.TextConstant
 import com.kkt.worthcalculation.db.SportTournamentInfoExcel
 import com.kkt.worthcalculation.db.SportTournamentInfoExcelRepository
 import com.kkt.worthcalculation.handle.ImportExcelException
+import com.kkt.worthcalculation.model.ResponseCompare
 import com.kkt.worthcalculation.model.SurveyCompare
 import com.kkt.worthcalculation.model.client.ResponseModel
 import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
@@ -208,9 +209,4 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
         return response["data"]
     }
 }
-
-data class ResponseCompare(
-    val tournamentA: SurveyCompare,
-    val tournamentB: SurveyCompare
-)
 
