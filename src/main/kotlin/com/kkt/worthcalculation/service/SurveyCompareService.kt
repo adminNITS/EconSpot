@@ -18,7 +18,7 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDateTime
 import java.util.*
-
+import kotlin.math.log
 
 
 @Service
@@ -29,14 +29,12 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
     fun getListImport(sportTournamentId: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
         try {
-
-
             response = ResponseEntity.ok(
                 ResponseModel(
                     message = TextConstant.RESP_SUCCESS_DESC,
                     status = TextConstant.RESP_SUCCESS_STATUS,
                     timestamp = LocalDateTime.now(),
-                    data = repo.findAllBySportTournamentId(sportTournamentId),
+                    data = repo.findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId),
                     pagination = null
                 )
             )
@@ -56,18 +54,61 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
 
     }
 
-    fun processExcel(sportTournamentId: String, file: MultipartFile, actionUserId: String): ResponseEntity<ResponseModel> {
+    fun importExcel(sportTournamentId: String, file: MultipartFile, actionUserId: String, isConfirm: Boolean): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
         try {
             val excelRowData = ReadImportFileUtil.readFromExcelFile(file)
             logger.info("Excel Data: $excelRowData")
-            val tt = repo.findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId, excelRowData.exTournamentLocation, excelRowData.exTournamentPeriodDate)
-            if (tt.isNotEmpty()) {
-                throw ImportExcelException("Duplicate excel!!")
-            }else {
+            val data = repo.findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId, excelRowData.exTournamentLocation, excelRowData.exTournamentPeriodDate)
+            if (!isConfirm) {
+                if (data.isNotEmpty()) {
+                    logger.info("Confirm duplicate ID: ${data.get(0).id}")
+                    response = ResponseEntity.ok(
+                        ResponseModel(
+                            message = TextConstant.RESP_DUP_DESC,
+                            status = TextConstant.RESP_DUP_STATUS,
+                            timestamp = LocalDateTime.now(),
+                            data = data,
+                            pagination = null
+                        )
+                    )
+                }else {
+                    logger.info("New Import Excel")
+                    repo.save(
+                        SportTournamentInfoExcel(
+                            id = UUID.randomUUID().toString(),
+                            sportTournamentId = sportTournamentId,
+                            excelFileName = file.originalFilename,
+                            excelData = file.bytes,
+                            excelContentType = file.contentType,
+                            excelLocation = excelRowData.exTournamentLocation,
+                            excelPeriodDate = excelRowData.exTournamentPeriodDate,
+                            excelBudgetValue = excelRowData.exTournamentBudgetValue,
+                            excelNetWorthValue = excelRowData.exTournamentNetWorthValue,
+                            excelEconomicValue = excelRowData.exTournamentEconomicValue,
+                            excelTotalSpend = excelRowData.exTournamentTotalSpend,
+                            createBy = actionUserId,
+                            createDate = Date(),
+                            updateBy = null,
+                            updateDate = null
+                        )
+                    )
+                    logger.info("record db success!")
+                    response = ResponseEntity.ok(
+                        ResponseModel(
+                            message = TextConstant.RESP_SUCCESS_DESC,
+                            status = TextConstant.RESP_SUCCESS_STATUS,
+                            timestamp = LocalDateTime.now(),
+                            data = null,
+                            pagination = null
+                        )
+                    )
+                }
+            } else {
+                logger.info("Update duplicate ID: ${data.get(0).id}")
                 repo.save(
                     SportTournamentInfoExcel(
-                        id = UUID.randomUUID().toString(),
+                        id = data.get(0).id,
                         sportTournamentId = sportTournamentId,
                         excelFileName = file.originalFilename,
                         excelData = file.bytes,
@@ -78,10 +119,10 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
                         excelNetWorthValue = excelRowData.exTournamentNetWorthValue,
                         excelEconomicValue = excelRowData.exTournamentEconomicValue,
                         excelTotalSpend = excelRowData.exTournamentTotalSpend,
-                        createBy = actionUserId,
-                        createDate = Date(),
-                        updateBy = null,
-                        updateDate = null
+                        createBy = data.get(0).createBy,
+                        createDate = data.get(0).createDate,
+                        updateBy = actionUserId,
+                        updateDate = Date()
                     )
                 )
                 logger.info("record db success!")
@@ -95,6 +136,7 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
                     )
                 )
             }
+
 
         } catch (importExcel: ImportExcelException) {
             response = ResponseEntity.badRequest().body(
@@ -147,6 +189,9 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
 
     fun compareTournament(req: RequestCompareCriteria): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
+
+
+
         try {
             response = ResponseEntity.ok(
                 ResponseModel(

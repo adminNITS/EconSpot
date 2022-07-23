@@ -71,5 +71,5 @@ data class SportTournamentInfoExcel(
 @Repository
 interface SportTournamentInfoExcelRepository : JpaRepository<SportTournamentInfoExcel, String>{
     fun findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId: String, excelLocation: String, excelPeriodDate: String) : List<SportTournamentInfoExcel>
-    fun findAllBySportTournamentId(sportTournamentId: String): List<SportTournamentInfoExcel>
+    fun findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId: String): List<SportTournamentInfoExcel>
 }

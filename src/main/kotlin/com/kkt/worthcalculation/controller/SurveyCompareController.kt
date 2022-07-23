@@ -29,7 +29,23 @@ class SurveyCompareController(val service: SurveyCompareService) {
                     pagination = null
                 )
             )
-        return service.processExcel(sportTournamentId, file, actionUserId)
+        return service.importExcel(sportTournamentId, file, actionUserId, false)
+    }
+
+    @PostMapping("/excel/import-confirm")
+    fun confirmImportExcel(@Valid @RequestParam sportTournamentId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String, @RequestParam isConfirm: Boolean): ResponseEntity<ResponseModel> {
+        logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, actionUserId: $actionUserId")
+        if (file.contentType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            return ResponseEntity.badRequest().body(
+                ResponseModel(
+                    message = "File type support only xlsx",
+                    status = "error",
+                    timestamp = LocalDateTime.now(),
+                    data = null,
+                    pagination = null
+                )
+            )
+        return service.importExcel(sportTournamentId, file, actionUserId, isConfirm)
     }
 
 
