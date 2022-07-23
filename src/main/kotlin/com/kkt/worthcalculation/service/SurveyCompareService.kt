@@ -18,7 +18,6 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.math.log
 
 
 @Service
@@ -28,13 +27,19 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
 
     fun getListImport(sportTournamentId: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
+
+        val data = repo.findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId)
+        for (x in data) {
+            x.sportTournament = getSportTournament(x.sportTournamentId)
+        }
+
         try {
             response = ResponseEntity.ok(
                 ResponseModel(
                     message = TextConstant.RESP_SUCCESS_DESC,
                     status = TextConstant.RESP_SUCCESS_STATUS,
                     timestamp = LocalDateTime.now(),
-                    data = repo.findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId),
+                    data = data,
                     pagination = null
                 )
             )
@@ -90,7 +95,8 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
                             createBy = actionUserId,
                             createDate = Date(),
                             updateBy = null,
-                            updateDate = null
+                            updateDate = null,
+                            sportTournament = getSportTournament(sportTournamentId)
                         )
                     )
                     logger.info("record db success!")
@@ -122,7 +128,8 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
                         createBy = data.get(0).createBy,
                         createDate = data.get(0).createDate,
                         updateBy = actionUserId,
-                        updateDate = Date()
+                        updateDate = Date(),
+                        sportTournament = getSportTournament(sportTournamentId)
                     )
                 )
                 logger.info("record db success!")

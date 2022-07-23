@@ -30,6 +30,8 @@ data class SportTournamentInfoExcel(
     val updateDate: Date?,
     val createBy: String? = "000001",
     val updateBy: String? = "000001",
+    @Transient
+    var sportTournament: Any?
 
 ) {
     override fun equals(other: Any?): Boolean {
