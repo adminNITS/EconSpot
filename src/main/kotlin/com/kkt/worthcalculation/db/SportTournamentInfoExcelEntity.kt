@@ -1,16 +1,13 @@
 package com.kkt.worthcalculation.db
 
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.math.BigDecimal
-import java.sql.Timestamp
-import java.util.Date
+import java.util.*
 import javax.persistence.*
 
 @Entity
 @Table(name = "SportTournamentInfoExcel")
-data class SportTournamentInfoExcel(
+data class SportTournamentInfoExcelEntity(
     @Id
     val id: String,
     val sportTournamentId: String,
@@ -34,27 +31,6 @@ data class SportTournamentInfoExcel(
     var sportTournament: Any?
 
 ) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as SportTournamentInfoExcel
-
-        if (id != other.id) return false
-        if (sportTournamentId != other.sportTournamentId) return false
-        if (excelFileName != other.excelFileName) return false
-        if (excelData != null) {
-            if (other.excelData == null) return false
-            if (!excelData.contentEquals(other.excelData)) return false
-        } else if (other.excelData != null) return false
-        if (excelContentType != other.excelContentType) return false
-        if (createDate != other.createDate) return false
-        if (updateDate != other.updateDate) return false
-        if (createBy != other.createBy) return false
-        if (updateBy != other.updateBy) return false
-
-        return true
-    }
 
     override fun hashCode(): Int {
         var result = id.hashCode()
@@ -71,7 +47,7 @@ data class SportTournamentInfoExcel(
 }
 
 @Repository
-interface SportTournamentInfoExcelRepository : JpaRepository<SportTournamentInfoExcel, String>{
-    fun findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId: String, excelLocation: String, excelPeriodDate: String) : List<SportTournamentInfoExcel>
-    fun findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId: String): List<SportTournamentInfoExcel>
+interface SportTournamentInfoExcelRepository : JpaRepository<SportTournamentInfoExcelEntity, String> {
+    fun findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId: String, excelLocation: String, excelPeriodDate: String): List<SportTournamentInfoExcelEntity>
+    fun findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId: String): List<SportTournamentInfoExcelEntity>
 }

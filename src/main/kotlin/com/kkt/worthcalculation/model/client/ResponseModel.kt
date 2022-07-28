@@ -8,5 +8,5 @@ data class ResponseModel(
     val timestamp: LocalDateTime,
     val pagination: Pagination?,
     val data: Any?
-    ) {
+) {
 }

@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class WorthCalculationApplication
 
 fun main(args: Array<String>) {
-	runApplication<WorthCalculationApplication>(*args)
+    runApplication<WorthCalculationApplication>(*args)
 }

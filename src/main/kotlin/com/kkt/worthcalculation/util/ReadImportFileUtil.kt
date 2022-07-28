@@ -56,7 +56,7 @@ class ReadImportFileUtil {
                     exTournamentNetWorthValue = NumberToTextConverter.toText(exTournamentNetWorthValue.numericCellValue),
                     exTournamentEconomicValue = NumberToTextConverter.toText(exTournamentEconomicValue.numericCellValue),
                 )
-            }catch (e: ImportExcelException) {
+            } catch (e: ImportExcelException) {
                 log.error(e.message)
                 throw ImportExcelException(e.message.toString())
             } catch (e: Exception) {

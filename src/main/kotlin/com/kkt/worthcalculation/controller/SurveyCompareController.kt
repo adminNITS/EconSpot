@@ -5,6 +5,7 @@ import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
 import com.kkt.worthcalculation.service.SurveyCompareService
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDateTime
@@ -67,5 +68,20 @@ class SurveyCompareController(val service: SurveyCompareService) {
         logger.info("request Tournament A: ${requestModel.tournamentA.tournamentId}")
         logger.info("request Tournament B: ${requestModel.tournamentB.tournamentId}")
         return service.compareTournament(requestModel)
+    }
+
+    @GetMapping("/dashboard")
+    fun getDashboard(@Valid @RequestParam surveySportId: String, @RequestParam monthDate: String): ResponseEntity<ResponseModel> {
+        logger.info("surveySportId: $surveySportId, monthDate: $monthDate")
+
+        val regex = Regex("\\d{4}-\\d{2}")
+        if (monthDate.isBlank() || !regex.matches(monthDate))
+            throw MissingServletRequestParameterException("monthDate", monthDate)
+
+        if (surveySportId.isBlank())
+            throw MissingServletRequestParameterException("surveySportId", surveySportId)
+
+        return service.getDashboardInfo(surveySportId, monthDate)
+
     }
 }
