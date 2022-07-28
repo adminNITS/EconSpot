@@ -13,6 +13,7 @@ data class SportTournamentInfoExcelEntity(
     val sportTournamentId: String,
     val excelLocation: String,
     val excelPeriodDate: String,
+    val provinceCode: String,
     val excelBudgetValue: String? = "0",
     val excelNetWorthValue: String? = "0",
     val excelEconomicValue: String? = "0",

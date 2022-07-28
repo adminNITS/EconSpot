@@ -24,7 +24,10 @@ import java.util.*
 
 
 @Service
-class SurveyCompareService(private val sportTourRepo: SportTournamentInfoExcelRepository, private val surveySportRepo: SurveySportRepository) {
+class SurveyCompareService(
+    private val sportTourRepo: SportTournamentInfoExcelRepository,
+    private val surveySportRepo: SurveySportRepository
+) {
 
     private val logger = LoggerFactory.getLogger(javaClass.name)
 
@@ -62,7 +65,7 @@ class SurveyCompareService(private val sportTourRepo: SportTournamentInfoExcelRe
 
     }
 
-    fun importExcel(sportTournamentId: String, file: MultipartFile, actionUserId: String, isConfirm: Boolean): ResponseEntity<ResponseModel> {
+    fun importExcel(sportTournamentId: String, file: MultipartFile, actionUserId: String, isConfirm: Boolean, provinceCode: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
         try {
             val excelRowData = ReadImportFileUtil.readFromExcelFile(file)
@@ -86,6 +89,7 @@ class SurveyCompareService(private val sportTourRepo: SportTournamentInfoExcelRe
                         SportTournamentInfoExcelEntity(
                             id = UUID.randomUUID().toString(),
                             sportTournamentId = sportTournamentId,
+                            provinceCode = provinceCode,
                             excelFileName = file.originalFilename,
                             excelData = file.bytes,
                             excelContentType = file.contentType,
@@ -119,6 +123,7 @@ class SurveyCompareService(private val sportTourRepo: SportTournamentInfoExcelRe
                     SportTournamentInfoExcelEntity(
                         id = data.get(0).id,
                         sportTournamentId = sportTournamentId,
+                        provinceCode = provinceCode,
                         excelFileName = file.originalFilename,
                         excelData = file.bytes,
                         excelContentType = file.contentType,
