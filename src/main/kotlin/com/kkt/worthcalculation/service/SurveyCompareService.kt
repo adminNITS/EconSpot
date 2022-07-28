@@ -1,8 +1,9 @@
 package com.kkt.worthcalculation.service
 
 import com.kkt.worthcalculation.constant.TextConstant
-import com.kkt.worthcalculation.db.SportTournamentInfoExcel
+import com.kkt.worthcalculation.db.SportTournamentInfoExcelEntity
 import com.kkt.worthcalculation.db.SportTournamentInfoExcelRepository
+import com.kkt.worthcalculation.db.SurveySportRepository
 import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ResponseCompare
 import com.kkt.worthcalculation.model.SurveyCompare
@@ -16,19 +17,21 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
+import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 
 @Service
-class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository) {
+class SurveyCompareService(private val sportTourRepo: SportTournamentInfoExcelRepository, private val surveySportRepo: SurveySportRepository) {
 
     private val logger = LoggerFactory.getLogger(javaClass.name)
 
     fun getListImport(sportTournamentId: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
 
-        val data = repo.findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId)
+        val data = sportTourRepo.findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId)
         for (x in data) {
             x.sportTournament = getSportTournament(x.sportTournamentId)
         }
@@ -64,7 +67,7 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
         try {
             val excelRowData = ReadImportFileUtil.readFromExcelFile(file)
             logger.info("Excel Data: $excelRowData")
-            val data = repo.findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId, excelRowData.exTournamentLocation, excelRowData.exTournamentPeriodDate)
+            val data = sportTourRepo.findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId, excelRowData.exTournamentLocation, excelRowData.exTournamentPeriodDate)
             if (!isConfirm) {
                 if (data.isNotEmpty()) {
                     logger.info("Confirm duplicate ID: ${data.get(0).id}")
@@ -77,10 +80,10 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
                             pagination = null
                         )
                     )
-                }else {
+                } else {
                     logger.info("New Import Excel")
-                    repo.save(
-                        SportTournamentInfoExcel(
+                    sportTourRepo.save(
+                        SportTournamentInfoExcelEntity(
                             id = UUID.randomUUID().toString(),
                             sportTournamentId = sportTournamentId,
                             excelFileName = file.originalFilename,
@@ -112,8 +115,8 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
                 }
             } else {
                 logger.info("Update duplicate ID: ${data.get(0).id}")
-                repo.save(
-                    SportTournamentInfoExcel(
+                sportTourRepo.save(
+                    SportTournamentInfoExcelEntity(
                         id = data.get(0).id,
                         sportTournamentId = sportTournamentId,
                         excelFileName = file.originalFilename,
@@ -173,12 +176,56 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
     fun downloadExcel(sportTournamentId: String, excelId: String): ResponseEntity<Any> {
         var response: ResponseEntity<Any>
         try {
-            val data = repo.findById(excelId)
+            val data = sportTourRepo.findById(excelId)
             if (!data.isPresent) throw Exception("Excel not found!!")
             response = ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(data.get().excelContentType.toString()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + data.get().excelFileName + "\"")
                 .body(data.get().excelData);
+        } catch (e: Exception) {
+            logger.error(e.message)
+            response = ResponseEntity.internalServerError().body(
+                ResponseModel(
+                    message = TextConstant.RESP_FAILED_DESC + "|${e.message}",
+                    status = TextConstant.RESP_FAILED_STATUS,
+                    timestamp = LocalDateTime.now(),
+                    data = null,
+                    pagination = null
+                )
+            )
+        }
+        return response
+    }
+
+    fun getDashboardInfo(surveySportId: String, monthDate: String): ResponseEntity<ResponseModel> {
+        var response: ResponseEntity<ResponseModel>
+        try {
+            val formatterRequest = SimpleDateFormat("yyyy-MM")
+            val formatterA = SimpleDateFormat("yyyy-MM-dd")
+            val mDate = formatterRequest.parse(monthDate)
+
+            val ss: LocalDate = LocalDate.parse(formatterA.format(mDate))
+            val startDayOfMonth: LocalDate = ss.withDayOfMonth(1)
+            val endDayOfMonth: LocalDate = ss.withDayOfMonth(ss.lengthOfMonth())
+
+            logger.info(startDayOfMonth.toString())
+            logger.info(endDayOfMonth.toString())
+            val listSurveySport = surveySportRepo.findAllBySurveySportIdAndAndStartDateBetween(surveySportId, formatterA.parse(startDayOfMonth.toString()), formatterA.parse(endDayOfMonth.toString()));
+            if (listSurveySport.isNotEmpty()) {
+                for (x in listSurveySport) {
+                    x.sportTournament = getSportTournament(x.sportTourId.toString())
+                    x.sportTournamentSurveyExcel = sportTourRepo.findAllBySportTournamentIdOrderByCreateDateDesc(x.sportTourId.toString())
+                }
+            }
+            response = ResponseEntity.ok(
+                ResponseModel(
+                    message = TextConstant.RESP_SUCCESS_DESC,
+                    status = TextConstant.RESP_SUCCESS_STATUS,
+                    timestamp = LocalDateTime.now(),
+                    data = listSurveySport,
+                    pagination = null
+                )
+            )
         } catch (e: Exception) {
             logger.error(e.message)
             response = ResponseEntity.internalServerError().body(
@@ -246,8 +293,8 @@ class SurveyCompareService(private val repo: SportTournamentInfoExcelRepository)
     }
 
     private fun getSportTournament(sportTournamentId: String): Any? {
-        val restTemplate: RestTemplate = RestTemplate()
-        val response = restTemplate.getForEntity("http://34.87.106.181:4567/rest/sportTournament/$sportTournamentId", Any::class.java).body as Map<*, *>
+        val restTemplate = RestTemplate()
+        val response = restTemplate.getForEntity("http://34.143.176.77:4567/rest/sportTournament/$sportTournamentId", Any::class.java).body as Map<*, *>
         return response["data"]
     }
 }
