@@ -38,8 +38,8 @@ class SurveyCompareService(
 
     fun getListImport(sportTournamentId: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
-
         val data = sportTourRepo.findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId)
+        logger.info("Found Data: ${data.size}")
         for (x in data) {
             x.sportTournament = getSportTournament(x.sportTournamentId)
             x.excelData = null
@@ -77,9 +77,9 @@ class SurveyCompareService(
             val excelRowData = ReadImportFileUtil.readFromExcelFile(file)
             logger.info("Excel Data: $excelRowData")
             val data = sportTourRepo.findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId, excelRowData.exTournamentLocation, excelRowData.exTournamentPeriodDate)
-            data[0].excelData = null
             if (!isConfirm) {
                 if (data.isNotEmpty()) {
+                    data[0].excelData = null
                     logger.info("Confirm duplicate ID: ${data[0].id}")
                     response = ResponseEntity.ok(
                         ResponseModel(
