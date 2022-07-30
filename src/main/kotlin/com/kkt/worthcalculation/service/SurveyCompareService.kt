@@ -77,6 +77,7 @@ class SurveyCompareService(
             val excelRowData = ReadImportFileUtil.readFromExcelFile(file)
             logger.info("Excel Data: $excelRowData")
             val data = sportTourRepo.findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId, excelRowData.exTournamentLocation, excelRowData.exTournamentPeriodDate)
+            data[0].excelData = null
             if (!isConfirm) {
                 if (data.isNotEmpty()) {
                     logger.info("Confirm duplicate ID: ${data[0].id}")
