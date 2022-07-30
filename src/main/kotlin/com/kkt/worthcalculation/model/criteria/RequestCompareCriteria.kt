@@ -8,6 +8,11 @@ class RequestCompareCriteria {
 
     @get: Valid
     val tournamentB: Tournament = Tournament()
+    override fun toString(): String {
+        return "RequestCompareCriteria(tournamentA=$tournamentA, tournamentB=$tournamentB)"
+    }
+
+
 }
 
 

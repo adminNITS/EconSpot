@@ -78,12 +78,11 @@ data class SurveySportEntity(
 
     @Transient
     var sportTournamentSurveyExcel: Any?
-) {
-}
+)
 
 @Repository
 interface SurveySportRepository : JpaRepository<SurveySportEntity, String> {
-    fun findAllBySurveySportIdAndAndStartDateBetween(surveySportId: String?, startDate: Date?, endDate: Date?): List<SurveySportEntity>
+    fun findAllBySurveySportIdAndStartDateBetween(surveySportId: String?, startDate: Date?, endDate: Date?): List<SurveySportEntity>
 }
 
 

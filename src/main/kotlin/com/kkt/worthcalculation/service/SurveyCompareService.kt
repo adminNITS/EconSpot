@@ -6,11 +6,12 @@ import com.kkt.worthcalculation.db.SportTournamentInfoExcelRepository
 import com.kkt.worthcalculation.db.SurveySportRepository
 import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ResponseCompare
-import com.kkt.worthcalculation.model.SurveyCompare
 import com.kkt.worthcalculation.model.client.ResponseModel
 import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
+import com.kkt.worthcalculation.model.criteria.Tournament
 import com.kkt.worthcalculation.util.ReadImportFileUtil
 import org.slf4j.LoggerFactory
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -21,6 +22,10 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import javax.persistence.criteria.CriteriaBuilder
+import javax.persistence.criteria.CriteriaQuery
+import javax.persistence.criteria.Predicate
+import javax.persistence.criteria.Root
 
 
 @Service
@@ -37,6 +42,7 @@ class SurveyCompareService(
         val data = sportTourRepo.findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId)
         for (x in data) {
             x.sportTournament = getSportTournament(x.sportTournamentId)
+            x.excelData = null
         }
 
         try {
@@ -73,7 +79,7 @@ class SurveyCompareService(
             val data = sportTourRepo.findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId, excelRowData.exTournamentLocation, excelRowData.exTournamentPeriodDate)
             if (!isConfirm) {
                 if (data.isNotEmpty()) {
-                    logger.info("Confirm duplicate ID: ${data.get(0).id}")
+                    logger.info("Confirm duplicate ID: ${data[0].id}")
                     response = ResponseEntity.ok(
                         ResponseModel(
                             message = TextConstant.RESP_DUP_DESC,
@@ -99,6 +105,7 @@ class SurveyCompareService(
                             excelNetWorthValue = excelRowData.exTournamentNetWorthValue,
                             excelEconomicValue = excelRowData.exTournamentEconomicValue,
                             excelTotalSpend = excelRowData.exTournamentTotalSpend,
+                            excelSportProject = excelRowData.exTournamentName,
                             createBy = actionUserId,
                             createDate = Date(),
                             updateBy = null,
@@ -118,10 +125,10 @@ class SurveyCompareService(
                     )
                 }
             } else {
-                logger.info("Update duplicate ID: ${data.get(0).id}")
+                logger.info("Update duplicate ID: ${data[0].id}")
                 sportTourRepo.save(
                     SportTournamentInfoExcelEntity(
-                        id = data.get(0).id,
+                        id = data[0].id,
                         sportTournamentId = sportTournamentId,
                         provinceCode = provinceCode,
                         excelFileName = file.originalFilename,
@@ -133,8 +140,9 @@ class SurveyCompareService(
                         excelNetWorthValue = excelRowData.exTournamentNetWorthValue,
                         excelEconomicValue = excelRowData.exTournamentEconomicValue,
                         excelTotalSpend = excelRowData.exTournamentTotalSpend,
-                        createBy = data.get(0).createBy,
-                        createDate = data.get(0).createDate,
+                        excelSportProject = excelRowData.exTournamentName,
+                        createBy = data[0].createBy,
+                        createDate = data[0].createDate,
                         updateBy = actionUserId,
                         updateDate = Date(),
                         sportTournament = getSportTournament(sportTournamentId)
@@ -186,7 +194,7 @@ class SurveyCompareService(
             response = ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(data.get().excelContentType.toString()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + data.get().excelFileName + "\"")
-                .body(data.get().excelData);
+                .body(data.get().excelData)
         } catch (e: Exception) {
             logger.error(e.message)
             response = ResponseEntity.internalServerError().body(
@@ -215,11 +223,14 @@ class SurveyCompareService(
 
             logger.info(startDayOfMonth.toString())
             logger.info(endDayOfMonth.toString())
-            val listSurveySport = surveySportRepo.findAllBySurveySportIdAndAndStartDateBetween(surveySportId, formatterA.parse(startDayOfMonth.toString()), formatterA.parse(endDayOfMonth.toString()));
+            val listSurveySport = surveySportRepo.findAllBySurveySportIdAndStartDateBetween(surveySportId, formatterA.parse(startDayOfMonth.toString()), formatterA.parse(endDayOfMonth.toString()))
             if (listSurveySport.isNotEmpty()) {
                 for (x in listSurveySport) {
                     x.sportTournament = getSportTournament(x.sportTourId.toString())
                     x.sportTournamentSurveyExcel = sportTourRepo.findAllBySportTournamentIdOrderByCreateDateDesc(x.sportTourId.toString())
+                    for (y in x.sportTournamentSurveyExcel as List<SportTournamentInfoExcelEntity>) {
+                        y.excelData = null
+                    }
                 }
             }
             response = ResponseEntity.ok(
@@ -248,36 +259,29 @@ class SurveyCompareService(
 
     fun compareTournament(req: RequestCompareCriteria): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
-
-
-
         try {
+            val tournamentA = sportTourRepo.findAll(genWhere(req.tournamentA))
+            val tournamentB = sportTourRepo.findAll(genWhere(req.tournamentB))
+            logger.info("TournamentA Size: ${tournamentA.size}")
+            logger.info("TournamentB Size: ${tournamentB.size}")
+            if (tournamentA.isNotEmpty()) {
+                tournamentA[0].sportTournament = getSportTournament(tournamentA[0].sportTournamentId)
+                tournamentA[0].excelData = null
+            }
+
+            if (tournamentB.isNotEmpty()) {
+                tournamentB[0].sportTournament = getSportTournament(tournamentB[0].sportTournamentId)
+                tournamentB[0].excelData = null
+            }
+
             response = ResponseEntity.ok(
                 ResponseModel(
                     message = TextConstant.RESP_SUCCESS_DESC,
                     status = TextConstant.RESP_SUCCESS_STATUS,
                     timestamp = LocalDateTime.now(),
                     data = ResponseCompare(
-                        tournamentA = SurveyCompare(
-                            svCompareId = "1",
-                            sportTournamentId = req.tournamentA.tournamentId,
-                            sportTournament = getSportTournament(req.tournamentA.tournamentId),
-                            svCompareExcelFileName = "test.xlsx",
-                            svCompareExcelSourceData = "binary Text",
-                            svCompareBudgetValue = "2000000",
-                            svCompareNetWorthValue = "2500000",
-                            svCompareEconomicValue = "1900000"
-                        ),
-                        tournamentB = SurveyCompare(
-                            svCompareId = "1",
-                            sportTournamentId = req.tournamentB.tournamentId,
-                            sportTournament = getSportTournament(req.tournamentA.tournamentId),
-                            svCompareExcelFileName = "test.xlsx",
-                            svCompareExcelSourceData = "binary Text",
-                            svCompareBudgetValue = "2000000",
-                            svCompareNetWorthValue = "2500000",
-                            svCompareEconomicValue = "1900000"
-                        )
+                        tournamentA = tournamentA,
+                        tournamentB = tournamentB
                     ),
                     pagination = null
                 )
@@ -302,5 +306,25 @@ class SurveyCompareService(
         val response = restTemplate.getForEntity("http://34.143.176.77:4567/rest/sportTournament/$sportTournamentId", Any::class.java).body as Map<*, *>
         return response["data"]
     }
+
+    private fun genWhere(objC: Tournament): Specification<SportTournamentInfoExcelEntity> {
+        return Specification<SportTournamentInfoExcelEntity> { sp: Root<SportTournamentInfoExcelEntity?>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+            val predicates: MutableList<Predicate> = ArrayList<Predicate>()
+            if (objC.sportTourId.isNotBlank())
+                predicates.add(cb.equal(sp.get<Any>("sportTournamentId"), objC.sportTourId))
+
+            if (objC.provinceCode?.isNotBlank() == true)
+                predicates.add(cb.equal(sp.get<Any>("provinceCode"), objC.provinceCode))
+
+            if (objC.location?.isNotBlank() == true)
+                predicates.add(cb.equal(sp.get<Any>("excelLocation"), objC.location))
+
+            if (objC.sportProject?.isNotBlank() == true)
+                predicates.add(cb.equal(sp.get<Any>("excelSportProject"), objC.sportProject))
+
+            cb.and(*predicates.toTypedArray())
+        }
+    }
+
 }
 
