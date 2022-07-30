@@ -3,6 +3,7 @@ package com.kkt.worthcalculation.controller
 import com.kkt.worthcalculation.model.client.ResponseModel
 import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
 import com.kkt.worthcalculation.service.SurveyCompareService
+import com.kkt.worthcalculation.util.ReadImportFileUtil
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MissingServletRequestParameterException
@@ -19,33 +20,60 @@ class SurveyCompareController(val service: SurveyCompareService) {
 
     @PostMapping("/excel/import")
     fun importExcel(@Valid @RequestParam sportTournamentId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String, @RequestParam provinceCode: String): ResponseEntity<ResponseModel> {
-        logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, actionUserId: $actionUserId")
-        if (file.contentType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            return ResponseEntity.badRequest().body(
+        logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId")
+        try {
+            if (ReadImportFileUtil.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
+                return ResponseEntity.badRequest().body(
+                    ResponseModel(
+                        message = "File type support only xlsx",
+                        status = "error",
+                        timestamp = LocalDateTime.now(),
+                        data = null,
+                        pagination = null
+                    )
+                )
+        } catch (e: Exception) {
+            logger.error("Wrong format XLSX: $e")
+            return ResponseEntity.internalServerError().body(
                 ResponseModel(
-                    message = "File type support only xlsx",
+                    message = "Error format XLSX!!",
                     status = "error",
                     timestamp = LocalDateTime.now(),
                     data = null,
                     pagination = null
                 )
             )
+        }
+
         return service.importExcel(sportTournamentId, file, actionUserId, false, provinceCode)
     }
 
     @PostMapping("/excel/import-confirm")
     fun confirmImportExcel(@Valid @RequestParam sportTournamentId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String, @RequestParam provinceCode: String, @RequestParam isConfirm: Boolean): ResponseEntity<ResponseModel> {
-        logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, actionUserId: $actionUserId")
-        if (file.contentType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            return ResponseEntity.badRequest().body(
+        logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId, isConfirm: $isConfirm")
+        try {
+            if (ReadImportFileUtil.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
+                return ResponseEntity.badRequest().body(
+                    ResponseModel(
+                        message = "File type support only xlsx",
+                        status = "error",
+                        timestamp = LocalDateTime.now(),
+                        data = null,
+                        pagination = null
+                    )
+                )
+        } catch (e: Exception) {
+            logger.error("Wrong format XLSX: $e")
+            return ResponseEntity.internalServerError().body(
                 ResponseModel(
-                    message = "File type support only xlsx",
+                    message = "Error format XLSX!!",
                     status = "error",
                     timestamp = LocalDateTime.now(),
                     data = null,
                     pagination = null
                 )
             )
+        }
         return service.importExcel(sportTournamentId, file, actionUserId, isConfirm, provinceCode)
     }
 
@@ -65,8 +93,7 @@ class SurveyCompareController(val service: SurveyCompareService) {
 
     @PostMapping("/excel/compare")
     fun getCompare(@Valid @RequestBody requestModel: RequestCompareCriteria): ResponseEntity<ResponseModel> {
-        logger.info("request Tournament A: ${requestModel.tournamentA.tournamentId}")
-        logger.info("request Tournament B: ${requestModel.tournamentB.tournamentId}")
+        logger.info("request: $requestModel")
         return service.compareTournament(requestModel)
     }
 

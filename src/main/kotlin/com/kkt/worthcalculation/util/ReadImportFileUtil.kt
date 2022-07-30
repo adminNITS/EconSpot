@@ -9,15 +9,15 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.web.multipart.MultipartFile
 import java.io.FileInputStream
+import java.util.*
 
 
 class ReadImportFileUtil {
     companion object {
         private val log = getLogger(ReadImportFileUtil::class.java)
         fun readFromExcelFile(file: MultipartFile): ExcelRowData {
-
+            val excelFile = file.inputStream as FileInputStream
             try {
-                val excelFile = file.inputStream as FileInputStream
                 val xlWb = WorkbookFactory.create(excelFile)
                 val xlWs = xlWb.getSheetAt(0)
                 val evaluator: FormulaEvaluator = xlWb.creationHelper.createFormulaEvaluator()
@@ -62,10 +62,21 @@ class ReadImportFileUtil {
             } catch (e: Exception) {
                 log.error(e.message)
                 throw ImportExcelException("Invalid format or field in excel")
+            } finally {
+                excelFile.close()
             }
         }
 
         private fun getLogger(forClass: Class<*>): Logger = LoggerFactory.getLogger(forClass)
+
+        fun getExtensionByStringHandling(filename: String?): Optional<String?>? {
+            if (filename != null) {
+                return Optional.ofNullable(filename)
+                    .filter { f -> f.contains(".") }
+                    .map { f -> f.substring(filename.lastIndexOf(".") + 1) }
+            }
+            return null
+        }
     }
 
 
