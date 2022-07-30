@@ -222,9 +222,9 @@ class SurveyCompareService(
             val startDayOfMonth: LocalDate = ss.withDayOfMonth(1)
             val endDayOfMonth: LocalDate = ss.withDayOfMonth(ss.lengthOfMonth())
 
-            logger.info(startDayOfMonth.toString())
-            logger.info(endDayOfMonth.toString())
+            logger.info("Search Date Range: $startDayOfMonth - $endDayOfMonth")
             val listSurveySport = surveySportRepo.findAllBySurveySportIdAndStartDateBetween(surveySportId, formatterA.parse(startDayOfMonth.toString()), formatterA.parse(endDayOfMonth.toString()))
+            logger.info("Found Data: ${listSurveySport.size}")
             if (listSurveySport.isNotEmpty()) {
                 for (x in listSurveySport) {
                     x.sportTournament = getSportTournament(x.sportTourId.toString())
@@ -263,8 +263,7 @@ class SurveyCompareService(
         try {
             val tournamentA = sportTourRepo.findAll(genWhere(req.tournamentA))
             val tournamentB = sportTourRepo.findAll(genWhere(req.tournamentB))
-            logger.info("TournamentA Size: ${tournamentA.size}")
-            logger.info("TournamentB Size: ${tournamentB.size}")
+            logger.info("TournamentA Size: ${tournamentA.size}, TournamentB Size: ${tournamentB.size}")
             if (tournamentA.isNotEmpty()) {
                 tournamentA[0].sportTournament = getSportTournament(tournamentA[0].sportTournamentId)
                 tournamentA[0].excelData = null

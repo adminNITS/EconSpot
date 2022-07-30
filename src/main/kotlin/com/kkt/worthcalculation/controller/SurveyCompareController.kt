@@ -5,11 +5,13 @@ import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
 import com.kkt.worthcalculation.service.SurveyCompareService
 import com.kkt.worthcalculation.util.ReadImportFileUtil
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDateTime
+import java.util.*
 import javax.validation.Valid
 
 
@@ -20,9 +22,10 @@ class SurveyCompareController(val service: SurveyCompareService) {
 
     @PostMapping("/excel/import")
     fun importExcel(@Valid @RequestParam sportTournamentId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String, @RequestParam provinceCode: String): ResponseEntity<ResponseModel> {
-        logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId")
+        MDC.put("trackId", UUID.randomUUID().toString())
+        logger.info("sportTournamentId: $sportTournamentId, file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId")
         try {
-            if (ReadImportFileUtil.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
+            if (!ReadImportFileUtil.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
                 return ResponseEntity.badRequest().body(
                     ResponseModel(
                         message = "File type support only xlsx",
@@ -50,9 +53,10 @@ class SurveyCompareController(val service: SurveyCompareService) {
 
     @PostMapping("/excel/import-confirm")
     fun confirmImportExcel(@Valid @RequestParam sportTournamentId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String, @RequestParam provinceCode: String, @RequestParam isConfirm: Boolean): ResponseEntity<ResponseModel> {
+        MDC.put("trackId", UUID.randomUUID().toString())
         logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId, isConfirm: $isConfirm")
         try {
-            if (ReadImportFileUtil.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
+            if (!ReadImportFileUtil.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
                 return ResponseEntity.badRequest().body(
                     ResponseModel(
                         message = "File type support only xlsx",
@@ -80,27 +84,30 @@ class SurveyCompareController(val service: SurveyCompareService) {
 
     @GetMapping("/excel/download")
     fun downloadExcel(@RequestParam sportTournamentId: String, @RequestParam excelId: String): ResponseEntity<Any> {
+        MDC.put("trackId", UUID.randomUUID().toString())
         logger.info("sportTournamentId: $sportTournamentId, excelId: $excelId")
-
         return service.downloadExcel(sportTournamentId, excelId)
     }
 
     @GetMapping("/excel")
     fun getListImport(@Valid @RequestParam sportTournamentId: String): ResponseEntity<ResponseModel> {
+        MDC.put("trackId", UUID.randomUUID().toString())
         logger.info("sportTournamentId: $sportTournamentId")
         return service.getListImport(sportTournamentId)
     }
 
     @PostMapping("/excel/compare")
     fun getCompare(@Valid @RequestBody requestModel: RequestCompareCriteria): ResponseEntity<ResponseModel> {
+        MDC.put("trackId", UUID.randomUUID().toString())
+        logger.info("<---begin--->")
         logger.info("request: $requestModel")
         return service.compareTournament(requestModel)
     }
 
     @GetMapping("/dashboard")
     fun getDashboard(@Valid @RequestParam surveySportId: String, @RequestParam monthDate: String): ResponseEntity<ResponseModel> {
+        MDC.put("trackId", UUID.randomUUID().toString())
         logger.info("surveySportId: $surveySportId, monthDate: $monthDate")
-
         val regex = Regex("\\d{4}-\\d{2}")
         if (monthDate.isBlank() || !regex.matches(monthDate))
             throw MissingServletRequestParameterException("monthDate", monthDate)
