@@ -1,5 +1,6 @@
 package com.kkt.worthcalculation.db
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
@@ -25,13 +26,17 @@ data class SportTournamentInfoExcelEntity(
     var excelData: ByteArray?,
     val excelContentType: String?,
     @Temporal(TemporalType.TIMESTAMP)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MMMMM-yyyy HH:mm", locale = "th")
     val createDate: Date?,
     @Temporal(TemporalType.TIMESTAMP)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MMMMM-yyyy HH:mm", locale = "th")
     val updateDate: Date?,
     val createBy: String? = "000001",
     val updateBy: String? = "000001",
     @Transient
-    var sportTournament: Any?
+    var sportTournament: Any?,
+    @Transient
+    var user: Any?
 
 )
 

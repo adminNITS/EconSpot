@@ -6,6 +6,7 @@ import com.kkt.worthcalculation.db.SportTournamentInfoExcelRepository
 import com.kkt.worthcalculation.db.SurveySportRepository
 import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ResponseCompare
+import com.kkt.worthcalculation.model.User
 import com.kkt.worthcalculation.model.client.ResponseModel
 import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
 import com.kkt.worthcalculation.model.criteria.Tournament
@@ -43,6 +44,7 @@ class SurveyCompareService(
         for (x in data) {
             x.sportTournament = getSportTournament(x.sportTournamentId)
             x.excelData = null
+            x.user = x.createBy?.let { getUser(it) }
         }
 
         try {
@@ -111,7 +113,8 @@ class SurveyCompareService(
                             createDate = Date(),
                             updateBy = null,
                             updateDate = null,
-                            sportTournament = getSportTournament(sportTournamentId)
+                            sportTournament = null,
+                            user = null
                         )
                     )
                     logger.info("record db success!")
@@ -146,7 +149,8 @@ class SurveyCompareService(
                         createDate = data[0].createDate,
                         updateBy = actionUserId,
                         updateDate = Date(),
-                        sportTournament = getSportTournament(sportTournamentId)
+                        sportTournament = null,
+                        user = null
                     )
                 )
                 logger.info("record db success!")
@@ -231,6 +235,7 @@ class SurveyCompareService(
                     x.sportTournamentSurveyExcel = sportTourRepo.findAllBySportTournamentIdOrderByCreateDateDesc(x.sportTourId.toString())
                     for (y in x.sportTournamentSurveyExcel as List<SportTournamentInfoExcelEntity>) {
                         y.excelData = null
+                        y.user = y.createBy?.let { getUser(it) }
                     }
                 }
             }
@@ -267,11 +272,13 @@ class SurveyCompareService(
             if (tournamentA.isNotEmpty()) {
                 tournamentA[0].sportTournament = getSportTournament(tournamentA[0].sportTournamentId)
                 tournamentA[0].excelData = null
+                tournamentA[0].user = tournamentA[0].createBy?.let { getUser(it) }
             }
 
             if (tournamentB.isNotEmpty()) {
                 tournamentB[0].sportTournament = getSportTournament(tournamentB[0].sportTournamentId)
                 tournamentB[0].excelData = null
+                tournamentB[0].user = tournamentB[0].createBy?.let { getUser(it) }
             }
 
             response = ResponseEntity.ok(
@@ -305,6 +312,17 @@ class SurveyCompareService(
         val restTemplate = RestTemplate()
         val response = restTemplate.getForEntity("http://34.143.176.77:4567/rest/sportTournament/$sportTournamentId", Any::class.java).body as Map<*, *>
         return response["data"]
+    }
+
+    private fun getUser(userId: String): Any? {
+        val restTemplate = RestTemplate()
+        val response = restTemplate.getForEntity("http://34.143.176.77:4567/rest/user/$userId", Any::class.java).body as Map<*, *>
+        val ss = response["data"] as Map<*, *>
+        return User(
+            fname = ss["fname"].toString(),
+            lname = ss["lname"].toString(),
+            email = ss["email"].toString()
+        )
     }
 
     private fun genWhere(objC: Tournament): Specification<SportTournamentInfoExcelEntity> {
