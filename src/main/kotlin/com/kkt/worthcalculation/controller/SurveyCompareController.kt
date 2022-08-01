@@ -17,6 +17,7 @@ import javax.validation.Valid
 
 @RequestMapping("api/v2/worth")
 @RestController
+@CrossOrigin
 class SurveyCompareController(val service: SurveyCompareService) {
     private val logger = LoggerFactory.getLogger(javaClass.name)
 
