@@ -10,13 +10,16 @@ import com.kkt.worthcalculation.model.User
 import com.kkt.worthcalculation.model.client.ResponseModel
 import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
 import com.kkt.worthcalculation.model.criteria.Tournament
-import com.kkt.worthcalculation.util.ReadImportFileUtil
+import com.kkt.worthcalculation.util.Util
+import com.kkt.worthcalculation.util.Util.Companion.writeExcelFile
 import org.slf4j.LoggerFactory
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.util.ResourceUtils
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.text.SimpleDateFormat
@@ -76,7 +79,7 @@ class SurveyCompareService(
     fun importExcel(sportTournamentId: String, file: MultipartFile, actionUserId: String, isConfirm: Boolean, provinceCode: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
         try {
-            val excelRowData = ReadImportFileUtil.readFromExcelFile(file)
+            val excelRowData = Util.readFromExcelFile(file)
             logger.info("Excel Data: $excelRowData")
             val data = sportTourRepo.findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId, excelRowData.exTournamentLocation, excelRowData.exTournamentPeriodDate)
             if (!isConfirm) {
@@ -215,6 +218,51 @@ class SurveyCompareService(
         return response
     }
 
+    fun downloadExcelTemplate(surveySportId: String): ResponseEntity<Any> {
+        var response: ResponseEntity<Any>
+        try {
+            val data = getSurveySport(surveySportId) as Map<*, *>
+            if (data.isNotEmpty()) {
+                val sportTour = data["sportTour"] as Map<*, *>
+                val province = data["province"] as Map<*, *>
+                val sportTournamentName: String = sportTour["sportTourName"].toString()
+                val location: String = province["provinceName"].toString()
+                val startDate: String = convertDateFormatTH(data["startDate"].toString())
+                val endDate: String = convertDateFormatTH(data["endDate"].toString())
+                val fileImportMaster = ResourceUtils.getFile("classpath:excel/File_Import_Master.xlsx")
+                val excelData = writeExcelFile(fileImportMaster.inputStream(), sportTournamentName, location, startDate, endDate)
+
+                response = ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=sportTournamentName.xlsx")
+                    .body(excelData)
+            } else {
+                response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ResponseModel(
+                        message = TextConstant.RESP_NOT_FOUND_DESC,
+                        status = TextConstant.RESP_NOT_FOUND_STATUS,
+                        timestamp = LocalDateTime.now(),
+                        data = surveySportId,
+                        pagination = null
+                    )
+                )
+            }
+
+        } catch (e: Exception) {
+            logger.error(e.message)
+            response = ResponseEntity.internalServerError().body(
+                ResponseModel(
+                    message = TextConstant.RESP_FAILED_DESC + "|${e.message}",
+                    status = TextConstant.RESP_FAILED_STATUS,
+                    timestamp = LocalDateTime.now(),
+                    data = null,
+                    pagination = null
+                )
+            )
+        }
+        return response
+    }
+
     fun getDashboardInfo(surveySportId: String, monthDate: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
         try {
@@ -314,6 +362,12 @@ class SurveyCompareService(
         return response["data"]
     }
 
+    private fun getSurveySport(surveySportId: String): Any? {
+        val restTemplate = RestTemplate()
+        val response = restTemplate.getForEntity("http://34.143.176.77:4567/rest/surveySport/$surveySportId", Any::class.java).body as Map<*, *>
+        return response["data"]
+    }
+
     private fun getUser(userId: String): Any? {
         val restTemplate = RestTemplate()
         val response = restTemplate.getForEntity("http://34.143.176.77:4567/rest/user/$userId", Any::class.java).body as Map<*, *>
@@ -342,6 +396,13 @@ class SurveyCompareService(
 
             cb.and(*predicates.toTypedArray())
         }
+    }
+
+    private fun convertDateFormatTH(dateStr: String): String {
+        val sdf1 = SimpleDateFormat("yyyy-MM-dd")
+        val sdf2 = SimpleDateFormat("dd/MMM/yyyy", Locale("th", "th"))
+        val date = sdf1.parse(dateStr)
+        return sdf2.format(date)
     }
 
 }

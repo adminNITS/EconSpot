@@ -8,13 +8,14 @@ import org.apache.poi.ss.util.NumberToTextConverter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.web.multipart.MultipartFile
+import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.*
 
 
-class ReadImportFileUtil {
+class Util {
     companion object {
-        private val log = getLogger(ReadImportFileUtil::class.java)
+        private val log = getLogger(Util::class.java)
         fun readFromExcelFile(file: MultipartFile): ExcelRowData {
             val excelFile = file.inputStream as FileInputStream
             try {
@@ -64,6 +65,21 @@ class ReadImportFileUtil {
                 throw ImportExcelException("Invalid format or field in excel")
             } finally {
                 excelFile.close()
+            }
+        }
+
+        fun writeExcelFile(file: FileInputStream, sportTournamentName: String, location: String, startDate: String, endDate: String): ByteArray {
+            try {
+                val xlWb = WorkbookFactory.create(file)
+                val xlWs = xlWb.getSheetAt(0)
+                xlWs.getRow(4).createCell(1).setCellValue(sportTournamentName)
+                xlWs.getRow(4).createCell(2).setCellValue(location)
+                xlWs.getRow(4).createCell(3).setCellValue("$startDate - $endDate")
+                val out = ByteArrayOutputStream()
+                xlWb.write(out)
+                return out.toByteArray()
+            } catch (e: Exception) {
+                throw Exception("Cant create excel file " + e.message)
             }
         }
 

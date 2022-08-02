@@ -8,5 +8,7 @@ class TextConstant {
         const val RESP_FAILED_STATUS: String = "error"
         const val RESP_DUP_DESC: String = "duplicate"
         const val RESP_DUP_STATUS: String = "pending"
+        const val RESP_NOT_FOUND_DESC: String = "not found data"
+        const val RESP_NOT_FOUND_STATUS: String = "ok"
     }
 }

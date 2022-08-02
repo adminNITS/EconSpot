@@ -3,7 +3,7 @@ package com.kkt.worthcalculation.controller
 import com.kkt.worthcalculation.model.client.ResponseModel
 import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
 import com.kkt.worthcalculation.service.SurveyCompareService
-import com.kkt.worthcalculation.util.ReadImportFileUtil
+import com.kkt.worthcalculation.util.Util
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.http.ResponseEntity
@@ -26,7 +26,7 @@ class SurveyCompareController(val service: SurveyCompareService) {
         MDC.put("trackId", UUID.randomUUID().toString())
         logger.info("sportTournamentId: $sportTournamentId, file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId")
         try {
-            if (!ReadImportFileUtil.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
+            if (!Util.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
                 return ResponseEntity.badRequest().body(
                     ResponseModel(
                         message = "File type support only xlsx",
@@ -57,7 +57,7 @@ class SurveyCompareController(val service: SurveyCompareService) {
         MDC.put("trackId", UUID.randomUUID().toString())
         logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId, isConfirm: $isConfirm")
         try {
-            if (!ReadImportFileUtil.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
+            if (!Util.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
                 return ResponseEntity.badRequest().body(
                     ResponseModel(
                         message = "File type support only xlsx",
@@ -88,6 +88,13 @@ class SurveyCompareController(val service: SurveyCompareService) {
         MDC.put("trackId", UUID.randomUUID().toString())
         logger.info("sportTournamentId: $sportTournamentId, excelId: $excelId")
         return service.downloadExcel(sportTournamentId, excelId)
+    }
+
+    @GetMapping("/excel/download/template")
+    fun downloadExcelTemplate(@RequestParam surveySportId: String): ResponseEntity<Any> {
+        MDC.put("trackId", UUID.randomUUID().toString())
+        logger.info("sportTournamentId: $surveySportId")
+        return service.downloadExcelTemplate(surveySportId)
     }
 
     @GetMapping("/excel")
