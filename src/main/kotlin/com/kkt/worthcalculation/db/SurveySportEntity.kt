@@ -82,7 +82,7 @@ data class SurveySportEntity(
 
 @Repository
 interface SurveySportRepository : JpaRepository<SurveySportEntity, String> {
-    fun findAllBySurveySportIdAndStartDateBetween(surveySportId: String?, startDate: Date?, endDate: Date?): List<SurveySportEntity>
+    fun findAllBySportTourIdAndStartDateBetween(sportTourId: String?, startDate: Date?, endDate: Date?): List<SurveySportEntity>
 }
 
 

@@ -267,7 +267,7 @@ class SurveyCompareService(
         return response
     }
 
-    fun getDashboardInfo(surveySportId: String, monthDate: String): ResponseEntity<ResponseModel> {
+    fun getDashboardInfo(sportTourId: String, monthDate: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
         try {
             val formatterRequest = SimpleDateFormat("yyyy-MM")
@@ -279,7 +279,7 @@ class SurveyCompareService(
             val endDayOfMonth: LocalDate = ss.withDayOfMonth(ss.lengthOfMonth())
 
             logger.info("Search Date Range: $startDayOfMonth - $endDayOfMonth")
-            val listSurveySport = surveySportRepo.findAllBySurveySportIdAndStartDateBetween(surveySportId, formatterA.parse(startDayOfMonth.toString()), formatterA.parse(endDayOfMonth.toString()))
+            val listSurveySport = surveySportRepo.findAllBySportTourIdAndStartDateBetween(sportTourId, formatterA.parse(startDayOfMonth.toString()), formatterA.parse(endDayOfMonth.toString()))
             logger.info("Found Data: ${listSurveySport.size}")
             if (listSurveySport.isNotEmpty()) {
                 for (x in listSurveySport) {

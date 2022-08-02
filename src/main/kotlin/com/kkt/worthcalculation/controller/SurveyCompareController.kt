@@ -113,17 +113,17 @@ class SurveyCompareController(val service: SurveyCompareService) {
     }
 
     @GetMapping("/dashboard")
-    fun getDashboard(@Valid @RequestParam surveySportId: String, @RequestParam monthDate: String): ResponseEntity<ResponseModel> {
+    fun getDashboard(@Valid @RequestParam sportTourId: String, @RequestParam monthDate: String): ResponseEntity<ResponseModel> {
         MDC.put("trackId", UUID.randomUUID().toString())
-        logger.info("surveySportId: $surveySportId, monthDate: $monthDate")
+        logger.info("sportTourId: $sportTourId, monthDate: $monthDate")
         val regex = Regex("\\d{4}-\\d{2}")
         if (monthDate.isBlank() || !regex.matches(monthDate))
             throw MissingServletRequestParameterException("monthDate", monthDate)
 
-        if (surveySportId.isBlank())
-            throw MissingServletRequestParameterException("surveySportId", surveySportId)
+        if (sportTourId.isBlank())
+            throw MissingServletRequestParameterException("surveySportId", sportTourId)
 
-        return service.getDashboardInfo(surveySportId, monthDate)
+        return service.getDashboardInfo(sportTourId, monthDate)
 
     }
 }
