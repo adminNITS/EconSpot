@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
+import java.io.InputStream
 import java.util.*
 
 
@@ -68,7 +69,7 @@ class Util {
             }
         }
 
-        fun writeExcelFile(file: FileInputStream, sportTournamentName: String, location: String, startDate: String, endDate: String): ByteArray {
+        fun writeExcelFile(file: InputStream, sportTournamentName: String, location: String, startDate: String, endDate: String): ByteArray {
             try {
                 val xlWb = WorkbookFactory.create(file)
                 val xlWs = xlWb.getSheetAt(0)

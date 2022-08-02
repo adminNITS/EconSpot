@@ -1,5 +1,6 @@
 package com.kkt.worthcalculation.service
 
+import com.kkt.worthcalculation.config.ConfigProperties
 import com.kkt.worthcalculation.constant.TextConstant
 import com.kkt.worthcalculation.db.SportTournamentInfoExcelEntity
 import com.kkt.worthcalculation.db.SportTournamentInfoExcelRepository
@@ -19,9 +20,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.util.ResourceUtils
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -35,7 +37,8 @@ import javax.persistence.criteria.Root
 @Service
 class SurveyCompareService(
     private val sportTourRepo: SportTournamentInfoExcelRepository,
-    private val surveySportRepo: SurveySportRepository
+    private val surveySportRepo: SurveySportRepository,
+    private val properties: ConfigProperties
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass.name)
@@ -220,6 +223,7 @@ class SurveyCompareService(
 
     fun downloadExcelTemplate(surveySportId: String): ResponseEntity<Any> {
         var response: ResponseEntity<Any>
+        println(properties.excelReportA)
         try {
             val data = getSurveySport(surveySportId) as Map<*, *>
             if (data.isNotEmpty()) {
@@ -229,12 +233,12 @@ class SurveyCompareService(
                 val location: String = province["provinceName"].toString()
                 val startDate: String = convertDateFormatTH(data["startDate"].toString())
                 val endDate: String = convertDateFormatTH(data["endDate"].toString())
-                val fileImportMaster = ResourceUtils.getFile("classpath:excel/File_Import_Master.xlsx")
-                val excelData = writeExcelFile(fileImportMaster.inputStream(), sportTournamentName, location, startDate, endDate)
+                val fileImportMaster: InputStream = ByteArrayInputStream(Base64.getDecoder().decode(properties.excelImportMaster.toByteArray()))
+                val excelData = writeExcelFile(fileImportMaster, sportTournamentName, location, startDate, endDate)
 
                 response = ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=sportTournamentName.xlsx")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ImportMaster.xlsx")
                     .body(excelData)
             } else {
                 response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(
