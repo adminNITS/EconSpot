@@ -4,12 +4,9 @@ import javax.validation.Valid
 
 class RequestCompareCriteria {
     @get: Valid
-    val tournamentA: Tournament = Tournament()
-
-    @get: Valid
-    val tournamentB: Tournament = Tournament()
+    val surveySport: surveySport = surveySport()
     override fun toString(): String {
-        return "RequestCompareCriteria(tournamentA=$tournamentA, tournamentB=$tournamentB)"
+        return "RequestCompareCriteria(surveySport=$surveySport)"
     }
 
 

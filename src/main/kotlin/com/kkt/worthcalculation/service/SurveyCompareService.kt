@@ -4,13 +4,14 @@ import com.kkt.worthcalculation.config.ConfigProperties
 import com.kkt.worthcalculation.constant.TextConstant
 import com.kkt.worthcalculation.db.SportTournamentInfoExcelEntity
 import com.kkt.worthcalculation.db.SportTournamentInfoExcelRepository
+import com.kkt.worthcalculation.db.SurveySportEntity
 import com.kkt.worthcalculation.db.SurveySportRepository
 import com.kkt.worthcalculation.handle.ImportExcelException
-import com.kkt.worthcalculation.model.ResponseCompare
+import com.kkt.worthcalculation.model.ExcelData
 import com.kkt.worthcalculation.model.User
 import com.kkt.worthcalculation.model.client.ResponseModel
 import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
-import com.kkt.worthcalculation.model.criteria.Tournament
+import com.kkt.worthcalculation.model.criteria.surveySport
 import com.kkt.worthcalculation.util.Util
 import com.kkt.worthcalculation.util.Util.Companion.writeExcelFile
 import org.slf4j.LoggerFactory
@@ -283,12 +284,26 @@ class SurveyCompareService(
             logger.info("Found Data: ${listSurveySport.size}")
             if (listSurveySport.isNotEmpty()) {
                 for (x in listSurveySport) {
-                    x.sportTournament = getSportTournament(x.sportTourId.toString())
+                    val sportTournament = getSportTournament(x.sportTourId.toString()) as Map<*, *>
                     val listSportTour = sportTourRepo.findAllBySurveySportIdOrderByCreateDateDesc(x.surveySportId.toString())
                     if (listSportTour.isNotEmpty()) {
-                        x.sportTournamentSurveyExcel = sportTourRepo.findAllBySurveySportIdOrderByCreateDateDesc(x.surveySportId.toString())[0]
-                        (x.sportTournamentSurveyExcel as SportTournamentInfoExcelEntity).excelData = null
-                        (x.sportTournamentSurveyExcel as SportTournamentInfoExcelEntity).user = (x.sportTournamentSurveyExcel as SportTournamentInfoExcelEntity).createBy?.let { getUser(it) }
+                        val sportTournamentSurveyExcel = sportTourRepo.findAllBySurveySportIdOrderByCreateDateDesc(x.surveySportId.toString())[0]
+                        x.sportTournamentSurveyExcel = ExcelData(
+                            excelBudgetValue = sportTournamentSurveyExcel.excelBudgetValue,
+                            excelEconomicValue = sportTournamentSurveyExcel.excelEconomicValue,
+                            excelNetWorthValue = sportTournamentSurveyExcel.excelNetWorthValue,
+                            excelTotalSpend = sportTournamentSurveyExcel.excelTotalSpend,
+                            tournamentName = sportTournament["sportTourName"].toString()
+                        )
+//                        (x.sportTournamentSurveyExcel as SportTournamentInfoExcelEntity).user = (x.sportTournamentSurveyExcel as SportTournamentInfoExcelEntity).createBy?.let { getUser(it) }
+                    } else {
+                        x.sportTournamentSurveyExcel = ExcelData(
+                            excelBudgetValue = "0",
+                            excelEconomicValue = "0",
+                            excelNetWorthValue = "0",
+                            excelTotalSpend = "0",
+                            tournamentName = sportTournament["sportTourName"].toString()
+                        )
                     }
                 }
             }
@@ -319,33 +334,38 @@ class SurveyCompareService(
     fun compareTournament(req: RequestCompareCriteria): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
         try {
-            val tournamentA = sportTourRepo.findAll(genWhere(req.tournamentA))
-            val tournamentB = sportTourRepo.findAll(genWhere(req.tournamentB))
-            logger.info("TournamentA Size: ${tournamentA.size}, TournamentB Size: ${tournamentB.size}")
-            if (tournamentA.isNotEmpty()) {
-//                tournamentA[0].sportTournament = getSportTournament(tournamentA[0].sportTournamentId)
-                tournamentA[0].excelData = null
-                tournamentA[0].user = tournamentA[0].createBy?.let { getUser(it) }
-            }
+            val surveySportData = surveySportRepo.findAll(genWhere(req.surveySport))
+            logger.info("surveySportData Size: ${surveySportData.size}")
+            if (surveySportData.isNotEmpty()) {
+                val sportTournamentExcel = sportTourRepo.findAllBySurveySportIdOrderByCreateDateDesc(surveySportData[0].surveySportId.toString())
+                logger.info("sportTournamentExcel Size: ${sportTournamentExcel.size}")
+                if (sportTournamentExcel.isNotEmpty()) {
+                    sportTournamentExcel[0].excelData = null
+                    sportTournamentExcel[0].user = sportTournamentExcel[0].createBy?.let { getUser(it) }
+                }
 
-            if (tournamentB.isNotEmpty()) {
-//                tournamentB[0].sportTournament = getSportTournament(tournamentB[0].sportTournamentId)
-                tournamentB[0].excelData = null
-                tournamentB[0].user = tournamentB[0].createBy?.let { getUser(it) }
-            }
-
-            response = ResponseEntity.ok(
-                ResponseModel(
-                    message = TextConstant.RESP_SUCCESS_DESC,
-                    status = TextConstant.RESP_SUCCESS_STATUS,
-                    timestamp = LocalDateTime.now(),
-                    data = ResponseCompare(
-                        tournamentA = tournamentA,
-                        tournamentB = tournamentB
-                    ),
-                    pagination = null
+                response = ResponseEntity.ok(
+                    ResponseModel(
+                        message = TextConstant.RESP_SUCCESS_DESC,
+                        status = TextConstant.RESP_SUCCESS_STATUS,
+                        timestamp = LocalDateTime.now(),
+                        data = sportTournamentExcel[0],
+                        pagination = null
+                    )
                 )
-            )
+            } else {
+                response = ResponseEntity.ok(
+                    ResponseModel(
+                        message = TextConstant.RESP_NOT_FOUND_DESC,
+                        status = TextConstant.RESP_NOT_FOUND_STATUS,
+                        timestamp = LocalDateTime.now(),
+                        data = null,
+                        pagination = null
+                    )
+                )
+            }
+
+
         } catch (e: Exception) {
             logger.error(e.message)
             response = ResponseEntity.internalServerError().body(
@@ -384,20 +404,20 @@ class SurveyCompareService(
         )
     }
 
-    private fun genWhere(objC: Tournament): Specification<SportTournamentInfoExcelEntity> {
-        return Specification<SportTournamentInfoExcelEntity> { sp: Root<SportTournamentInfoExcelEntity?>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+    private fun genWhere(objC: surveySport): Specification<SurveySportEntity> {
+        return Specification<SurveySportEntity> { sp: Root<SurveySportEntity?>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
             val predicates: MutableList<Predicate> = ArrayList<Predicate>()
             if (objC.sportTourId.isNotBlank())
-                predicates.add(cb.equal(sp.get<Any>("sportTournamentId"), objC.sportTourId))
+                predicates.add(cb.equal(sp.get<Any>("sportTourId"), objC.sportTourId))
 
             if (objC.provinceCode?.isNotBlank() == true)
                 predicates.add(cb.equal(sp.get<Any>("provinceCode"), objC.provinceCode))
 
             if (objC.location?.isNotBlank() == true)
-                predicates.add(cb.equal(sp.get<Any>("excelLocation"), objC.location))
+                predicates.add(cb.equal(sp.get<Any>("location"), objC.location))
 
             if (objC.sportProject?.isNotBlank() == true)
-                predicates.add(cb.equal(sp.get<Any>("excelSportProject"), objC.sportProject))
+                predicates.add(cb.equal(sp.get<Any>("sportProject"), objC.sportProject))
 
             cb.and(*predicates.toTypedArray())
         }
