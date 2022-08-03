@@ -8,5 +8,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 data class ConfigProperties(
     val excelImportMaster: String,
     val excelReportA: String,
-    val excelReportB: String
+    val excelReportB: String,
+    val existingHost: String
 )

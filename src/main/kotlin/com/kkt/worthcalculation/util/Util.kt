@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.io.InputStream
+import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -93,6 +94,13 @@ class Util {
                     .map { f -> f.substring(filename.lastIndexOf(".") + 1) }
             }
             return null
+        }
+
+        fun convertDateFormatTH(dateStr: String): String {
+            val sdf1 = SimpleDateFormat("yyyy-MM-dd")
+            val sdf2 = SimpleDateFormat("dd/MMM/yyyy", Locale("th", "th"))
+            val date = sdf1.parse(dateStr)
+            return sdf2.format(date)
         }
     }
 

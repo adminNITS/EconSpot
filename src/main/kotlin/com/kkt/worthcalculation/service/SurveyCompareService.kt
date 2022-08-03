@@ -232,8 +232,8 @@ class SurveyCompareService(
                 val province = data["province"] as Map<*, *>
                 val sportTournamentName: String = sportTour["sportTourName"].toString()
                 val location: String = province["provinceName"].toString()
-                val startDate: String = convertDateFormatTH(data["startDate"].toString())
-                val endDate: String = convertDateFormatTH(data["endDate"].toString())
+                val startDate: String = Util.convertDateFormatTH(data["startDate"].toString())
+                val endDate: String = Util.convertDateFormatTH(data["endDate"].toString())
                 val fileImportMaster: InputStream = ByteArrayInputStream(Base64.getDecoder().decode(properties.excelImportMaster.toByteArray()))
                 val excelData = writeExcelFile(fileImportMaster, sportTournamentName, location, startDate, endDate)
 
@@ -383,19 +383,19 @@ class SurveyCompareService(
 
     private fun getSportTournament(sportTournamentId: String): Any? {
         val restTemplate = RestTemplate()
-        val response = restTemplate.getForEntity("http://34.143.176.77:4567/rest/sportTournament/$sportTournamentId", Any::class.java).body as Map<*, *>
+        val response = restTemplate.getForEntity("${properties.existingHost}/rest/sportTournament/$sportTournamentId", Any::class.java).body as Map<*, *>
         return response["data"]
     }
 
     private fun getSurveySport(surveySportId: String): Any? {
         val restTemplate = RestTemplate()
-        val response = restTemplate.getForEntity("http://34.143.176.77:4567/rest/surveySport/$surveySportId", Any::class.java).body as Map<*, *>
+        val response = restTemplate.getForEntity("${properties.existingHost}/rest/surveySport/$surveySportId", Any::class.java).body as Map<*, *>
         return response["data"]
     }
 
     private fun getUser(userId: String): Any? {
         val restTemplate = RestTemplate()
-        val response = restTemplate.getForEntity("http://34.143.176.77:4567/rest/user/$userId", Any::class.java).body as Map<*, *>
+        val response = restTemplate.getForEntity("${properties.existingHost}/rest/user/$userId", Any::class.java).body as Map<*, *>
         val ss = response["data"] as Map<*, *>
         return User(
             fname = ss["fname"].toString(),
@@ -421,13 +421,6 @@ class SurveyCompareService(
 
             cb.and(*predicates.toTypedArray())
         }
-    }
-
-    private fun convertDateFormatTH(dateStr: String): String {
-        val sdf1 = SimpleDateFormat("yyyy-MM-dd")
-        val sdf2 = SimpleDateFormat("dd/MMM/yyyy", Locale("th", "th"))
-        val date = sdf1.parse(dateStr)
-        return sdf2.format(date)
     }
 
 }
