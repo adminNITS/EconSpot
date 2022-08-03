@@ -12,7 +12,7 @@ import javax.persistence.*
 data class SportTournamentInfoExcelEntity(
     @Id
     val id: String,
-    val sportTournamentId: String,
+    val surveySportId: String,
     val excelLocation: String,
     val excelPeriodDate: String,
     val provinceCode: String,
@@ -42,6 +42,7 @@ data class SportTournamentInfoExcelEntity(
 
 @Repository
 interface SportTournamentInfoExcelRepository : JpaRepository<SportTournamentInfoExcelEntity, String>, JpaSpecificationExecutor<SportTournamentInfoExcelEntity> {
-    fun findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId: String, excelLocation: String, excelPeriodDate: String): List<SportTournamentInfoExcelEntity>
-    fun findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId: String): List<SportTournamentInfoExcelEntity>
+    //    fun findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId: String, excelLocation: String, excelPeriodDate: String): List<SportTournamentInfoExcelEntity>
+    fun findAllBySurveySportIdOrderByCreateDateDesc(surveySportId: String): List<SportTournamentInfoExcelEntity>
+
 }

@@ -43,12 +43,12 @@ class SurveyCompareService(
 
     private val logger = LoggerFactory.getLogger(javaClass.name)
 
-    fun getListImport(sportTournamentId: String): ResponseEntity<ResponseModel> {
+    fun getListImport(surveySportId: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
-        val data = sportTourRepo.findAllBySportTournamentIdOrderByCreateDateDesc(sportTournamentId)
+        val data = sportTourRepo.findAllBySurveySportIdOrderByCreateDateDesc(surveySportId)
         logger.info("Found Data: ${data.size}")
         for (x in data) {
-            x.sportTournament = getSportTournament(x.sportTournamentId)
+//            x.sportTournament = getSportTournament(x.sportTournamentId)
             x.excelData = null
             x.user = x.createBy?.let { getUser(it) }
         }
@@ -79,12 +79,12 @@ class SurveyCompareService(
 
     }
 
-    fun importExcel(sportTournamentId: String, file: MultipartFile, actionUserId: String, isConfirm: Boolean, provinceCode: String): ResponseEntity<ResponseModel> {
+    fun importExcel(surveySportId: String, file: MultipartFile, actionUserId: String, isConfirm: Boolean, provinceCode: String): ResponseEntity<ResponseModel> {
         var response: ResponseEntity<ResponseModel>
         try {
             val excelRowData = Util.readFromExcelFile(file)
             logger.info("Excel Data: $excelRowData")
-            val data = sportTourRepo.findBySportTournamentIdAndExcelLocationAndExcelPeriodDate(sportTournamentId, excelRowData.exTournamentLocation, excelRowData.exTournamentPeriodDate)
+            val data = sportTourRepo.findAllBySurveySportIdOrderByCreateDateDesc(surveySportId)
             if (!isConfirm) {
                 if (data.isNotEmpty()) {
                     data[0].excelData = null
@@ -103,7 +103,7 @@ class SurveyCompareService(
                     sportTourRepo.save(
                         SportTournamentInfoExcelEntity(
                             id = UUID.randomUUID().toString(),
-                            sportTournamentId = sportTournamentId,
+                            surveySportId = surveySportId,
                             provinceCode = provinceCode,
                             excelFileName = file.originalFilename,
                             excelData = file.bytes,
@@ -138,8 +138,8 @@ class SurveyCompareService(
                 logger.info("Update duplicate ID: ${data[0].id}")
                 sportTourRepo.save(
                     SportTournamentInfoExcelEntity(
-                        id = data[0].id,
-                        sportTournamentId = sportTournamentId,
+                        id = UUID.randomUUID().toString(),
+                        surveySportId = surveySportId,
                         provinceCode = provinceCode,
                         excelFileName = file.originalFilename,
                         excelData = file.bytes,
@@ -197,7 +197,7 @@ class SurveyCompareService(
         return response
     }
 
-    fun downloadExcel(sportTournamentId: String, excelId: String): ResponseEntity<Any> {
+    fun downloadExcel(surveySportId: String, excelId: String): ResponseEntity<Any> {
         var response: ResponseEntity<Any>
         try {
             val data = sportTourRepo.findById(excelId)
@@ -284,10 +284,11 @@ class SurveyCompareService(
             if (listSurveySport.isNotEmpty()) {
                 for (x in listSurveySport) {
                     x.sportTournament = getSportTournament(x.sportTourId.toString())
-                    x.sportTournamentSurveyExcel = sportTourRepo.findAllBySportTournamentIdOrderByCreateDateDesc(x.sportTourId.toString())
-                    for (y in x.sportTournamentSurveyExcel as List<SportTournamentInfoExcelEntity>) {
-                        y.excelData = null
-                        y.user = y.createBy?.let { getUser(it) }
+                    val listSportTour = sportTourRepo.findAllBySurveySportIdOrderByCreateDateDesc(x.surveySportId.toString())
+                    if (listSportTour.isNotEmpty()) {
+                        x.sportTournamentSurveyExcel = sportTourRepo.findAllBySurveySportIdOrderByCreateDateDesc(x.surveySportId.toString())[0]
+                        (x.sportTournamentSurveyExcel as SportTournamentInfoExcelEntity).excelData = null
+                        (x.sportTournamentSurveyExcel as SportTournamentInfoExcelEntity).user = (x.sportTournamentSurveyExcel as SportTournamentInfoExcelEntity).createBy?.let { getUser(it) }
                     }
                 }
             }
@@ -322,13 +323,13 @@ class SurveyCompareService(
             val tournamentB = sportTourRepo.findAll(genWhere(req.tournamentB))
             logger.info("TournamentA Size: ${tournamentA.size}, TournamentB Size: ${tournamentB.size}")
             if (tournamentA.isNotEmpty()) {
-                tournamentA[0].sportTournament = getSportTournament(tournamentA[0].sportTournamentId)
+//                tournamentA[0].sportTournament = getSportTournament(tournamentA[0].sportTournamentId)
                 tournamentA[0].excelData = null
                 tournamentA[0].user = tournamentA[0].createBy?.let { getUser(it) }
             }
 
             if (tournamentB.isNotEmpty()) {
-                tournamentB[0].sportTournament = getSportTournament(tournamentB[0].sportTournamentId)
+//                tournamentB[0].sportTournament = getSportTournament(tournamentB[0].sportTournamentId)
                 tournamentB[0].excelData = null
                 tournamentB[0].user = tournamentB[0].createBy?.let { getUser(it) }
             }

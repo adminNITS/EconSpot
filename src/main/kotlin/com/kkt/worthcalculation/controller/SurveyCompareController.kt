@@ -22,9 +22,9 @@ class SurveyCompareController(val service: SurveyCompareService) {
     private val logger = LoggerFactory.getLogger(javaClass.name)
 
     @PostMapping("/excel/import")
-    fun importExcel(@Valid @RequestParam sportTournamentId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String, @RequestParam provinceCode: String): ResponseEntity<ResponseModel> {
+    fun importExcel(@Valid @RequestParam surveySportId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String, @RequestParam provinceCode: String): ResponseEntity<ResponseModel> {
         MDC.put("trackId", UUID.randomUUID().toString())
-        logger.info("sportTournamentId: $sportTournamentId, file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId")
+        logger.info("surveySportId: $surveySportId, file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId")
         try {
             if (!Util.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
                 return ResponseEntity.badRequest().body(
@@ -49,13 +49,13 @@ class SurveyCompareController(val service: SurveyCompareService) {
             )
         }
 
-        return service.importExcel(sportTournamentId, file, actionUserId, false, provinceCode)
+        return service.importExcel(surveySportId, file, actionUserId, false, provinceCode)
     }
 
     @PostMapping("/excel/import-confirm")
-    fun confirmImportExcel(@Valid @RequestParam sportTournamentId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String, @RequestParam provinceCode: String, @RequestParam isConfirm: Boolean): ResponseEntity<ResponseModel> {
+    fun confirmImportExcel(@Valid @RequestParam surveySportId: String, @RequestParam("uploadfile") file: MultipartFile, @RequestParam actionUserId: String, @RequestParam provinceCode: String, @RequestParam isConfirm: Boolean): ResponseEntity<ResponseModel> {
         MDC.put("trackId", UUID.randomUUID().toString())
-        logger.info("sportTournamentId: $sportTournamentId , file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId, isConfirm: $isConfirm")
+        logger.info("surveySportId: $surveySportId , file: ${file.originalFilename}, provinceCode: $provinceCode, actionUserId: $actionUserId, isConfirm: $isConfirm")
         try {
             if (!Util.getExtensionByStringHandling(file.originalFilename)?.get().equals("xlsx"))
                 return ResponseEntity.badRequest().body(
@@ -79,29 +79,29 @@ class SurveyCompareController(val service: SurveyCompareService) {
                 )
             )
         }
-        return service.importExcel(sportTournamentId, file, actionUserId, isConfirm, provinceCode)
+        return service.importExcel(surveySportId, file, actionUserId, isConfirm, provinceCode)
     }
 
 
     @GetMapping("/excel/download")
-    fun downloadExcel(@RequestParam sportTournamentId: String, @RequestParam excelId: String): ResponseEntity<Any> {
+    fun downloadExcel(@RequestParam surveySportId: String, @RequestParam excelId: String): ResponseEntity<Any> {
         MDC.put("trackId", UUID.randomUUID().toString())
-        logger.info("sportTournamentId: $sportTournamentId, excelId: $excelId")
-        return service.downloadExcel(sportTournamentId, excelId)
+        logger.info("surveySportId: $surveySportId, excelId: $excelId")
+        return service.downloadExcel(surveySportId, excelId)
     }
 
     @GetMapping("/excel/download/template")
     fun downloadExcelTemplate(@RequestParam surveySportId: String): ResponseEntity<Any> {
         MDC.put("trackId", UUID.randomUUID().toString())
-        logger.info("sportTournamentId: $surveySportId")
+        logger.info("surveySportId: $surveySportId")
         return service.downloadExcelTemplate(surveySportId)
     }
 
     @GetMapping("/excel")
-    fun getListImport(@Valid @RequestParam sportTournamentId: String): ResponseEntity<ResponseModel> {
+    fun getListImport(@Valid @RequestParam surveySportId: String): ResponseEntity<ResponseModel> {
         MDC.put("trackId", UUID.randomUUID().toString())
-        logger.info("sportTournamentId: $sportTournamentId")
-        return service.getListImport(sportTournamentId)
+        logger.info("surveySportId: $surveySportId")
+        return service.getListImport(surveySportId)
     }
 
     @PostMapping("/excel/compare")
