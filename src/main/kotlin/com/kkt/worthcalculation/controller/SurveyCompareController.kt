@@ -121,7 +121,7 @@ class SurveyCompareController(val service: SurveyCompareService) {
             throw MissingServletRequestParameterException("monthDate", monthDate)
 
         if (sportTourId.isBlank())
-            throw MissingServletRequestParameterException("surveySportId", sportTourId)
+            throw MissingServletRequestParameterException("sportTourId", sportTourId)
 
         return service.getDashboardInfo(sportTourId, monthDate)
 
