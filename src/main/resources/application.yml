@@ -25,3 +25,4 @@ application:
   excelReportA: aa
   excelReportB: bb
   existingHost: http://34.143.176.77:4567
+  irrValue: 3.38

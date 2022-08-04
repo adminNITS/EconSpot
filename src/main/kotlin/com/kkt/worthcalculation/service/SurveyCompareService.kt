@@ -112,7 +112,8 @@ class SurveyCompareService(
                             excelLocation = excelRowData.exTournamentLocation,
                             excelPeriodDate = excelRowData.exTournamentPeriodDate,
                             excelBudgetValue = excelRowData.exTournamentBudgetValue,
-                            excelNetWorthValue = excelRowData.exTournamentNetWorthValue,
+//                            excelNetWorthValue = excelRowData.exTournamentNetWorthValue,
+                            excelNetWorthValue = calNetWorth(excelRowData.exTournamentBudgetValue, excelRowData.exTournamentEconomicValue),
                             excelEconomicValue = excelRowData.exTournamentEconomicValue,
                             excelTotalSpend = excelRowData.exTournamentTotalSpend,
                             excelSportProject = excelRowData.exTournamentName,
@@ -402,6 +403,15 @@ class SurveyCompareService(
             lname = ss["lname"].toString(),
             email = ss["email"].toString()
         )
+    }
+
+    private fun calNetWorth(budgetValue: String?, economicValue: String?): String {
+        val irr1 = 1 + properties.irrValue.toDouble()
+        val ss = budgetValue?.toDouble()?.let { economicValue?.toDouble()?.minus(it) }
+        val r = String.format("%.2f", ss?.div(irr1))
+        logger.info("1 + irr = $irr1")
+        logger.info("(Bt - Ct)/1 + irr = $r")
+        return r
     }
 
     private fun genWhere(objC: surveySport): Specification<SurveySportEntity> {

@@ -9,5 +9,6 @@ data class ConfigProperties(
     val excelImportMaster: String,
     val excelReportA: String,
     val excelReportB: String,
-    val existingHost: String
+    val existingHost: String,
+    val irrValue: String
 )
