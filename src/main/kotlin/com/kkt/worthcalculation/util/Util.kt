@@ -3,6 +3,7 @@ package com.kkt.worthcalculation.util
 import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ExcelRowData
 import org.apache.poi.ss.usermodel.FormulaEvaluator
+import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.apache.poi.ss.util.NumberToTextConverter
 import org.slf4j.Logger
@@ -85,6 +86,58 @@ class Util {
             }
         }
 
+        fun createExcelFile(file: InputStream, data: Any): ByteArray {
+
+            val info = data as ArrayList<Map<*, *>>
+            val xlWb = WorkbookFactory.create(file)
+            val sheet = xlWb.getSheetAt(0)
+
+            val exportAtRow: Row = sheet.getRow(0)
+            exportAtRow.getCell(1).setCellValue(convertDateTimeFormat())
+            val loginAtRow: Row = sheet.getRow(3)
+            loginAtRow.getCell(1).setCellValue("${convertDateFormat()} - ${convertDateFormat()} ")
+
+            // Body
+            var rowIdx = 6
+            var rowNumber = 1
+
+            val dd = sheet.getRow(6).getCell(0).cellStyle
+            for (s: Map<*, *>? in info) {
+                val sportAct = s?.get("sportAct") as Map<*, *>
+                val sportType = s?.get("sportType") as Map<*, *>
+                val createUser = s?.get("createUser") as Map<*, *>
+                val updateUser = s?.get("updateUser") as Map<*, *>?
+                val bodyRow: Row = sheet.createRow(rowIdx)
+                bodyRow.rowStyle = dd
+                bodyRow.height = 350
+
+                sheet.autoSizeColumn(1)
+                sheet.autoSizeColumn(2)
+                sheet.autoSizeColumn(3)
+                sheet.autoSizeColumn(4)
+                sheet.autoSizeColumn(5)
+                sheet.autoSizeColumn(6)
+                sheet.autoSizeColumn(7)
+                bodyRow.createCell(0).setCellValue(rowNumber.toString())
+                bodyRow.createCell(1).setCellValue(sportAct["sportActName"].toString())
+                bodyRow.createCell(2).setCellValue(sportType["sportTypeName"].toString())
+                bodyRow.createCell(3).setCellValue(s["sportTourName"].toString())
+                bodyRow.createCell(4).setCellValue(convertDateTimeFormatTH(s["createDate"].toString()))
+                bodyRow.createCell(5).setCellValue("${createUser["fname"]} ${createUser["lname"]}")
+                bodyRow.createCell(6).setCellValue(convertDateTimeFormatTH(s["updateDate"].toString()))
+                bodyRow.createCell(7).setCellValue("${updateUser?.get("fname") ?: ""} ${updateUser?.get("lname") ?: ""}")
+                for (i in 0..7) {
+                    bodyRow.getCell(i).cellStyle = dd
+                }
+                rowNumber++
+                rowIdx++
+            }
+            val out = ByteArrayOutputStream()
+            xlWb.write(out)
+            return out.toByteArray()
+
+        }
+
         private fun getLogger(forClass: Class<*>): Logger = LoggerFactory.getLogger(forClass)
 
         fun getExtensionByStringHandling(filename: String?): Optional<String?>? {
@@ -102,6 +155,25 @@ class Util {
             val date = sdf1.parse(dateStr)
             return sdf2.format(date)
         }
+
+        private fun convertDateTimeFormatTH(dateStr: String?): String {
+            if (dateStr.equals("null")) return ""
+            val sdf1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+            val sdf2 = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("th", "th"))
+            val date = sdf1.parse(dateStr)
+            return sdf2.format(date)
+        }
+
+        private fun convertDateTimeFormat(): String {
+            val sdf2 = SimpleDateFormat("dd/MM/yyyy HH:mm")
+            return sdf2.format(Date())
+        }
+
+        private fun convertDateFormat(): String {
+            val sdf2 = SimpleDateFormat("dd/MM/yyyy")
+            return sdf2.format(Date())
+        }
+
     }
 
 
