@@ -343,17 +343,29 @@ class SurveyCompareService(
                 if (sportTournamentExcel.isNotEmpty()) {
                     sportTournamentExcel[0].excelData = null
                     sportTournamentExcel[0].user = sportTournamentExcel[0].createBy?.let { getUser(it) }
+
+                    response = ResponseEntity.ok(
+                        ResponseModel(
+                            message = TextConstant.RESP_SUCCESS_DESC,
+                            status = TextConstant.RESP_SUCCESS_STATUS,
+                            timestamp = LocalDateTime.now(),
+                            data = sportTournamentExcel[0],
+                            pagination = null
+                        )
+                    )
+                } else {
+                    response = ResponseEntity.ok(
+                        ResponseModel(
+                            message = TextConstant.RESP_NOT_FOUND_DESC,
+                            status = TextConstant.RESP_NOT_FOUND_STATUS,
+                            timestamp = LocalDateTime.now(),
+                            data = null,
+                            pagination = null
+                        )
+                    )
                 }
 
-                response = ResponseEntity.ok(
-                    ResponseModel(
-                        message = TextConstant.RESP_SUCCESS_DESC,
-                        status = TextConstant.RESP_SUCCESS_STATUS,
-                        timestamp = LocalDateTime.now(),
-                        data = sportTournamentExcel[0],
-                        pagination = null
-                    )
-                )
+
             } else {
                 response = ResponseEntity.ok(
                     ResponseModel(
@@ -406,12 +418,21 @@ class SurveyCompareService(
     }
 
     private fun calNetWorth(budgetValue: String?, economicValue: String?): String {
-        val irr1 = 1 + properties.irrValue.toDouble()
-        val ss = budgetValue?.toDouble()?.let { economicValue?.toDouble()?.minus(it) }
-        val r = String.format("%.2f", ss?.div(irr1))
-        logger.info("1 + irr = $irr1")
-        logger.info("(Bt - Ct)/1 + irr = $r")
-        return r
+        try {
+            val irr1 = 1 + properties.irrValue.toDouble()
+            val ss = budgetValue?.toDouble()?.let { economicValue?.toDouble()?.minus(it) }
+            val r = String.format("%.2f", ss?.div(irr1))
+            logger.info("Bt: $economicValue")
+            logger.info("Ct: $budgetValue")
+            logger.info("Bt - Ct = $ss")
+            logger.info("1 + irr = $irr1")
+            logger.info("(Bt - Ct)/1 + irr = $r")
+            return r
+        } catch (e: Exception) {
+            logger.error(e.message)
+            return "0"
+        }
+
     }
 
     private fun genWhere(objC: surveySport): Specification<SurveySportEntity> {
