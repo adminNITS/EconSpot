@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:mysql://34.87.106.181:3306/SportDB
-    username: eco@SAT2020ecoDB
-    password:
+    username: ecoDB
+    password: eco@SAT2020
   jpa:
     properties:
       hibernate:
