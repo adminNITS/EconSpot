@@ -2,8 +2,8 @@ package com.kkt.worthcalculation.util
 
 import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ExcelRowData
-import com.kkt.worthcalculation.service.ReportExcelGeneral
-import com.kkt.worthcalculation.service.ReportExcelPermission
+import com.kkt.worthcalculation.model.ReportExcelGeneral
+import com.kkt.worthcalculation.model.ReportExcelPermission
 import org.apache.poi.ss.usermodel.FormulaEvaluator
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.WorkbookFactory
@@ -77,9 +77,9 @@ class Util {
             try {
                 val xlWb = WorkbookFactory.create(file)
                 val xlWs = xlWb.getSheetAt(0)
-                xlWs.getRow(4).createCell(1).setCellValue(sportTournamentName)
-                xlWs.getRow(4).createCell(2).setCellValue(location)
-                xlWs.getRow(4).createCell(3).setCellValue("$startDate - $endDate")
+                xlWs.getRow(4).getCell(1).setCellValue(sportTournamentName)
+                xlWs.getRow(4).getCell(2).setCellValue(location)
+                xlWs.getRow(4).getCell(3).setCellValue("$startDate - $endDate")
                 val out = ByteArrayOutputStream()
                 xlWb.write(out)
                 return out.toByteArray()

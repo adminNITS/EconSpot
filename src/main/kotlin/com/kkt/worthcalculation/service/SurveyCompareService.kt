@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import java.io.InputStream
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -204,9 +205,10 @@ class SurveyCompareService(
         try {
             val data = sportTourRepo.findById(excelId)
             if (!data.isPresent) throw Exception("Excel not found!!")
+            val filename: String = URLEncoder.encode(data.get().excelFileName, "UTF-8")
             response = ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(data.get().excelContentType.toString()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + data.get().excelFileName + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
                 .body(data.get().excelData)
         } catch (e: Exception) {
             logger.error(e.message)
@@ -238,9 +240,10 @@ class SurveyCompareService(
                 val fileImportMaster: InputStream = ByteArrayInputStream(Base64.getDecoder().decode(properties.excelImportMaster.toByteArray()))
                 val excelData = writeExcelFile(fileImportMaster, sportTournamentName, location, startDate, endDate)
 
+                val filename: String = URLEncoder.encode("template-$sportTournamentName-$location-$startDate-$endDate.xlsx", "UTF-8")
                 response = ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ImportMaster.xlsx")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
                     .body(excelData)
             } else {
                 response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(

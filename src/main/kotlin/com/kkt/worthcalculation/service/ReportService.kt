@@ -2,6 +2,8 @@ package com.kkt.worthcalculation.service
 
 import com.kkt.worthcalculation.config.ConfigProperties
 import com.kkt.worthcalculation.constant.TextConstant
+import com.kkt.worthcalculation.model.ReportExcelGeneral
+import com.kkt.worthcalculation.model.ReportExcelPermission
 import com.kkt.worthcalculation.model.client.ResponseModel
 import com.kkt.worthcalculation.util.Util
 import org.slf4j.LoggerFactory
@@ -171,24 +173,3 @@ class ReportService(
 }
 
 
-data class ReportExcelPermission(
-    val employeeCode: String,
-    val employeeName: String,
-    val groupType: String,
-    val permission: String,
-    val status: String,
-    val createDate: String,
-    val createBy: String,
-    val updateDate: String,
-    val updateBy: String
-)
-
-data class ReportExcelGeneral(
-    val activityType: String,
-    val sportType: String,
-    val name: String,
-    val createDate: String,
-    val createBy: String,
-    val updateDate: String,
-    val updateBy: String
-)
