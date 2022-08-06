@@ -2,6 +2,7 @@ package com.kkt.worthcalculation.util
 
 import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ExcelRowData
+import com.kkt.worthcalculation.service.ReportExcelPermission
 import org.apache.poi.ss.usermodel.FormulaEvaluator
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.WorkbookFactory
@@ -86,7 +87,7 @@ class Util {
             }
         }
 
-        fun createExcelFile(file: InputStream, data: Any): ByteArray {
+        fun createExcelFileA(file: InputStream, data: Any): ByteArray {
 
             val info = data as ArrayList<Map<*, *>>
             val xlWb = WorkbookFactory.create(file)
@@ -138,6 +139,49 @@ class Util {
 
         }
 
+        fun createExcelFileB(file: InputStream, data: MutableList<ReportExcelPermission>): ByteArray {
+
+            val xlWb = WorkbookFactory.create(file)
+            val sheet = xlWb.getSheetAt(0)
+
+            val exportAtRow: Row = sheet.getRow(0)
+            exportAtRow.getCell(0).setCellValue("Export At : ${convertDateTimeFormat()}")
+            val loginAtRow: Row = sheet.getRow(3)
+            loginAtRow.createCell(0).setCellValue("Login At : ")
+            loginAtRow.createCell(1).setCellValue("${convertDateFormat()} - ${convertDateFormat()} ")
+            // Body
+            var rowIdx = 6
+            var cloneStyle = xlWb.createCellStyle()
+            for (s: ReportExcelPermission in data) {
+                val bodyRow: Row = sheet.createRow(rowIdx)
+                bodyRow.height = 350
+                for (i in 0..8) {
+                    if (rowIdx == 6)
+                        cloneStyle = sheet.getRow(7).getCell(i).cellStyle
+                    if (rowIdx >= 7)
+                        cloneStyle = sheet.getRow(6).getCell(i).cellStyle
+                    sheet.autoSizeColumn(i)
+                    bodyRow.createCell(i).cellStyle = cloneStyle
+                    bodyRow.getCell(i).row.height = -1
+                }
+
+                bodyRow.getCell(0).setCellValue(s.employeeCode)
+                bodyRow.getCell(1).setCellValue(s.employeeName)
+                bodyRow.getCell(2).setCellValue(s.groupType)
+                bodyRow.getCell(3).setCellValue(s.permission)
+                bodyRow.getCell(4).setCellValue(s.status)
+                bodyRow.getCell(5).setCellValue(s.createDate)
+                bodyRow.getCell(6).setCellValue(s.createBy)
+                bodyRow.getCell(7).setCellValue(s.updateDate)
+                bodyRow.getCell(8).setCellValue(s.updateBy)
+                rowIdx++
+            }
+            val out = ByteArrayOutputStream()
+            xlWb.write(out)
+            return out.toByteArray()
+
+        }
+
         private fun getLogger(forClass: Class<*>): Logger = LoggerFactory.getLogger(forClass)
 
         fun getExtensionByStringHandling(filename: String?): Optional<String?>? {
@@ -156,7 +200,7 @@ class Util {
             return sdf2.format(date)
         }
 
-        private fun convertDateTimeFormatTH(dateStr: String?): String {
+        fun convertDateTimeFormatTH(dateStr: String?): String {
             if (dateStr.equals("null")) return ""
             val sdf1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
             val sdf2 = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("th", "th"))
