@@ -28,11 +28,34 @@ class ReportService(
             val data = getSurveySport() ?: throw Exception("Excel not found!!")
             val fileImportMaster: InputStream = ByteArrayInputStream(Base64.getDecoder().decode(properties.excelReportA.toByteArray()))
             val filename: String = URLEncoder.encode("Report-ข้อมูลพื้นฐาน.xlsx", "UTF-8");
+            val listExcelGeneral: MutableList<ReportExcelGeneral> = mutableListOf()
+            for (s: Map<*, *> in data) {
+                val sportAct = s?.get("sportAct") as Map<*, *>
+                val sportType = s?.get("sportType") as Map<*, *>
+                val createUser = s?.get("createUser") as Map<*, *>
+                val updateUser = s?.get("updateUser") as Map<*, *>?
+                listExcelGeneral.add(
+                    ReportExcelGeneral(
+                        activityType = sportAct["sportActName"].toString(),
+                        sportType = sportType["sportTypeName"].toString(),
+                        name = s["sportTourName"].toString(),
+                        createDate = Util.convertDateTimeFormatTH(s["createDate"].toString()),
+                        createBy = "${createUser["fname"]} ${createUser["lname"]}",
+                        updateDate = Util.convertDateTimeFormatTH(s["updateDate"].toString()),
+                        updateBy = "${updateUser?.get("fname") ?: ""} ${updateUser?.get("lname") ?: ""}"
+                    )
+                )
+            }
+
+
+
+
             return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
-                .body(Util.createExcelFileA(fileImportMaster, data))
+                .body(Util.createExcelFileA(fileImportMaster, listExcelGeneral))
         } catch (e: Exception) {
+            e.printStackTrace()
             logger.error(e.message)
             response = ResponseEntity.internalServerError().body(
                 ResponseModel(
@@ -94,10 +117,10 @@ class ReportService(
         return response
     }
 
-    private fun getSurveySport(): Any? {
+    private fun getSurveySport(): ArrayList<Map<*, *>> {
         val restTemplate = RestTemplate()
         val response = restTemplate.getForEntity("${properties.existingHost}/rest/sportTournaments", Any::class.java).body as Map<*, *>
-        return response["data"]
+        return response["data"] as ArrayList<Map<*, *>>
     }
 
     private fun getListUser(): ArrayList<Map<*, *>> {
@@ -154,6 +177,16 @@ data class ReportExcelPermission(
     val groupType: String,
     val permission: String,
     val status: String,
+    val createDate: String,
+    val createBy: String,
+    val updateDate: String,
+    val updateBy: String
+)
+
+data class ReportExcelGeneral(
+    val activityType: String,
+    val sportType: String,
+    val name: String,
     val createDate: String,
     val createBy: String,
     val updateDate: String,

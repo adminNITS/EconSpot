@@ -2,6 +2,7 @@ package com.kkt.worthcalculation.util
 
 import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ExcelRowData
+import com.kkt.worthcalculation.service.ReportExcelGeneral
 import com.kkt.worthcalculation.service.ReportExcelPermission
 import org.apache.poi.ss.usermodel.FormulaEvaluator
 import org.apache.poi.ss.usermodel.Row
@@ -87,12 +88,10 @@ class Util {
             }
         }
 
-        fun createExcelFileA(file: InputStream, data: Any): ByteArray {
+        fun createExcelFileA(file: InputStream, data: MutableList<ReportExcelGeneral>): ByteArray {
 
-            val info = data as ArrayList<Map<*, *>>
             val xlWb = WorkbookFactory.create(file)
             val sheet = xlWb.getSheetAt(0)
-
             val exportAtRow: Row = sheet.getRow(0)
             exportAtRow.getCell(1).setCellValue(convertDateTimeFormat())
             val loginAtRow: Row = sheet.getRow(3)
@@ -101,35 +100,29 @@ class Util {
             // Body
             var rowIdx = 6
             var rowNumber = 1
-
-            val dd = sheet.getRow(6).getCell(0).cellStyle
-            for (s: Map<*, *>? in info) {
-                val sportAct = s?.get("sportAct") as Map<*, *>
-                val sportType = s?.get("sportType") as Map<*, *>
-                val createUser = s?.get("createUser") as Map<*, *>
-                val updateUser = s?.get("updateUser") as Map<*, *>?
+            var cloneStyle = xlWb.createCellStyle()
+            for (s: ReportExcelGeneral in data) {
                 val bodyRow: Row = sheet.createRow(rowIdx)
-                bodyRow.rowStyle = dd
                 bodyRow.height = 350
-
-                sheet.autoSizeColumn(1)
-                sheet.autoSizeColumn(2)
-                sheet.autoSizeColumn(3)
-                sheet.autoSizeColumn(4)
-                sheet.autoSizeColumn(5)
-                sheet.autoSizeColumn(6)
-                sheet.autoSizeColumn(7)
-                bodyRow.createCell(0).setCellValue(rowNumber.toString())
-                bodyRow.createCell(1).setCellValue(sportAct["sportActName"].toString())
-                bodyRow.createCell(2).setCellValue(sportType["sportTypeName"].toString())
-                bodyRow.createCell(3).setCellValue(s["sportTourName"].toString())
-                bodyRow.createCell(4).setCellValue(convertDateTimeFormatTH(s["createDate"].toString()))
-                bodyRow.createCell(5).setCellValue("${createUser["fname"]} ${createUser["lname"]}")
-                bodyRow.createCell(6).setCellValue(convertDateTimeFormatTH(s["updateDate"].toString()))
-                bodyRow.createCell(7).setCellValue("${updateUser?.get("fname") ?: ""} ${updateUser?.get("lname") ?: ""}")
                 for (i in 0..7) {
-                    bodyRow.getCell(i).cellStyle = dd
+                    if (rowIdx == 6)
+                        cloneStyle = sheet.getRow(7).getCell(i).cellStyle
+                    if (rowIdx >= 7)
+                        cloneStyle = sheet.getRow(6).getCell(i).cellStyle
+                    sheet.autoSizeColumn(i)
+                    bodyRow.createCell(i).cellStyle = cloneStyle
+                    bodyRow.getCell(i).row.height = -1
                 }
+
+                bodyRow.getCell(0).setCellValue(rowNumber.toString())
+                bodyRow.getCell(1).setCellValue(s.activityType)
+                bodyRow.getCell(2).setCellValue(s.sportType)
+                bodyRow.getCell(3).setCellValue(s.name)
+                bodyRow.getCell(4).setCellValue(s.createDate)
+                bodyRow.getCell(5).setCellValue(s.createBy)
+                bodyRow.getCell(6).setCellValue(s.updateDate)
+                bodyRow.getCell(7).setCellValue(s.updateBy)
+
                 rowNumber++
                 rowIdx++
             }
