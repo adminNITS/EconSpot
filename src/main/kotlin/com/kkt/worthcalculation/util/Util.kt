@@ -261,6 +261,12 @@ class Util {
             return sdf2.format(date)
         }
 
+        fun convertStringToDate(strDate: String?): Date? {
+            if (strDate.isNullOrEmpty()) return null
+            val sdf = SimpleDateFormat("dd/MM/yyyy")
+            return sdf.parse(strDate)
+        }
+
     }
 
 
