@@ -11,7 +11,7 @@ import com.kkt.worthcalculation.model.ExcelData
 import com.kkt.worthcalculation.model.User
 import com.kkt.worthcalculation.model.client.ResponseModel
 import com.kkt.worthcalculation.model.criteria.RequestCompareCriteria
-import com.kkt.worthcalculation.model.criteria.surveySport
+import com.kkt.worthcalculation.model.criteria.SurveySport
 import com.kkt.worthcalculation.util.Util
 import com.kkt.worthcalculation.util.Util.Companion.writeExcelFile
 import org.slf4j.LoggerFactory
@@ -241,7 +241,7 @@ class SurveyCompareService(
 
                 val filename: String = URLEncoder.encode("template-$sportTournamentName-$location-$startDate-$endDate.xlsx", "UTF-8")
                 response = ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .contentType(MediaType.parseMediaType(TextConstant.EXCEL_SHEET_CONTENT_TYPE))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
                     .body(excelData)
             } else {
@@ -437,7 +437,7 @@ class SurveyCompareService(
 
     }
 
-    private fun genWhere(objC: surveySport): Specification<SurveySportEntity> {
+    private fun genWhere(objC: SurveySport): Specification<SurveySportEntity> {
         return Specification<SurveySportEntity> { sp: Root<SurveySportEntity?>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
             val predicates: MutableList<Predicate> = ArrayList<Predicate>()
             if (objC.sportTourId.isNotBlank())

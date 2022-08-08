@@ -2,7 +2,7 @@ package com.kkt.worthcalculation.model.criteria
 
 import javax.validation.constraints.NotBlank
 
-class surveySport {
+class SurveySport {
     @get: NotBlank
     val sportTourId: String = ""
     val sportProject: String? = null

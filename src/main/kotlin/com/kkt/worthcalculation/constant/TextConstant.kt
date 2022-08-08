@@ -10,5 +10,6 @@ class TextConstant {
         const val RESP_DUP_STATUS: String = "pending"
         const val RESP_NOT_FOUND_DESC: String = "not found data"
         const val RESP_NOT_FOUND_STATUS: String = "ok"
+        const val EXCEL_SHEET_CONTENT_TYPE: String = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     }
 }

@@ -57,7 +57,7 @@ class ReportService(
 
 
             return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(MediaType.parseMediaType(TextConstant.EXCEL_SHEET_CONTENT_TYPE))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
                 .body(Util.createExcelFileA(fileImportMaster, listExcelGeneral))
         } catch (e: Exception) {
@@ -105,7 +105,7 @@ class ReportService(
 
 
             return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(MediaType.parseMediaType(TextConstant.EXCEL_SHEET_CONTENT_TYPE))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
                 .body(Util.createExcelFileB(fileImportMaster, listExcelPermission))
         } catch (e: Exception) {
@@ -150,7 +150,7 @@ class ReportService(
 
 
             return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(MediaType.parseMediaType(TextConstant.EXCEL_SHEET_CONTENT_TYPE))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=$filename")
                 .body(Util.createExcelFileC(fileImportMaster, listExcelLogin))
         } catch (e: Exception) {
