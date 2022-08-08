@@ -3,6 +3,7 @@ package com.kkt.worthcalculation.util
 import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ExcelRowData
 import com.kkt.worthcalculation.model.ReportExcelGeneral
+import com.kkt.worthcalculation.model.ReportExcelLogin
 import com.kkt.worthcalculation.model.ReportExcelPermission
 import org.apache.poi.ss.usermodel.FormulaEvaluator
 import org.apache.poi.ss.usermodel.Row
@@ -93,9 +94,9 @@ class Util {
             val xlWb = WorkbookFactory.create(file)
             val sheet = xlWb.getSheetAt(0)
             val exportAtRow: Row = sheet.getRow(0)
-            exportAtRow.getCell(1).setCellValue(convertDateTimeFormat())
+            exportAtRow.getCell(1).setCellValue(convertDateTimeFormat(Date()))
             val loginAtRow: Row = sheet.getRow(3)
-            loginAtRow.getCell(1).setCellValue("${convertDateFormat()} - ${convertDateFormat()} ")
+            loginAtRow.getCell(1).setCellValue("${convertDateFormat(Date())} - ${convertDateFormat(Date())} ")
 
             // Body
             var rowIdx = 6
@@ -138,10 +139,10 @@ class Util {
             val sheet = xlWb.getSheetAt(0)
 
             val exportAtRow: Row = sheet.getRow(0)
-            exportAtRow.getCell(0).setCellValue("Export At : ${convertDateTimeFormat()}")
+            exportAtRow.getCell(0).setCellValue("Export At : ${convertDateTimeFormat(Date())}")
             val loginAtRow: Row = sheet.getRow(3)
             loginAtRow.createCell(0).setCellValue("Login At : ")
-            loginAtRow.createCell(1).setCellValue("${convertDateFormat()} - ${convertDateFormat()} ")
+            loginAtRow.createCell(1).setCellValue("${convertDateFormat(Date())} - ${convertDateFormat(Date())} ")
             // Body
             var rowIdx = 6
             var cloneStyle = xlWb.createCellStyle()
@@ -167,6 +168,49 @@ class Util {
                 bodyRow.getCell(6).setCellValue(s.createBy)
                 bodyRow.getCell(7).setCellValue(s.updateDate)
                 bodyRow.getCell(8).setCellValue(s.updateBy)
+                rowIdx++
+            }
+            val out = ByteArrayOutputStream()
+            xlWb.write(out)
+            return out.toByteArray()
+
+        }
+
+        fun createExcelFileC(file: InputStream, data: MutableList<ReportExcelLogin>): ByteArray {
+
+            val xlWb = WorkbookFactory.create(file)
+            val sheet = xlWb.getSheetAt(0)
+
+            val exportAtRow: Row = sheet.getRow(0)
+            exportAtRow.getCell(0).setCellValue("Export At : ${convertDateTimeFormat(Date())}")
+            val loginAtRow: Row = sheet.getRow(3)
+            loginAtRow.createCell(0).setCellValue("Login At : ")
+            loginAtRow.createCell(1).setCellValue("${convertDateFormat(Date())} - ${convertDateFormat(Date())} ")
+            // Body
+            var rowIdx = 5
+            var cloneStyle = xlWb.createCellStyle()
+            for (s: ReportExcelLogin in data) {
+                val bodyRow: Row = sheet.createRow(rowIdx)
+                bodyRow.height = 350
+                for (i in 0..8) {
+                    if (rowIdx == 5)
+                        cloneStyle = sheet.getRow(6).getCell(i).cellStyle
+                    if (rowIdx >= 6)
+                        cloneStyle = sheet.getRow(5).getCell(i).cellStyle
+                    sheet.autoSizeColumn(i)
+                    bodyRow.createCell(i).cellStyle = cloneStyle
+                    bodyRow.getCell(i).row.height = -1
+                }
+
+                bodyRow.getCell(0).setCellValue(s.status)
+                bodyRow.getCell(1).setCellValue(s.loginAt)
+                bodyRow.getCell(2).setCellValue(s.logoutAt)
+                bodyRow.getCell(3).setCellValue(s.username)
+                bodyRow.getCell(4).setCellValue(s.employeeCode)
+                bodyRow.getCell(5).setCellValue(s.employeeName)
+                bodyRow.getCell(6).setCellValue(s.groupType)
+                bodyRow.getCell(7).setCellValue(s.ip)
+                bodyRow.getCell(8).setCellValue(s.browser)
                 rowIdx++
             }
             val out = ByteArrayOutputStream()
@@ -201,14 +245,20 @@ class Util {
             return sdf2.format(date)
         }
 
-        private fun convertDateTimeFormat(): String {
+        fun convertDateTimeFormat(date: Date): String {
             val sdf2 = SimpleDateFormat("dd/MM/yyyy HH:mm")
-            return sdf2.format(Date())
+            return sdf2.format(date)
         }
 
-        private fun convertDateFormat(): String {
+        fun convertDateTimeSecondFormat(date: Date?): String {
+            if (date == null) return ""
+            val sdf2 = SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
+            return sdf2.format(date)
+        }
+
+        private fun convertDateFormat(date: Date): String {
             val sdf2 = SimpleDateFormat("dd/MM/yyyy")
-            return sdf2.format(Date())
+            return sdf2.format(date)
         }
 
     }

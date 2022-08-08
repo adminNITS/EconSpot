@@ -7,8 +7,9 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties("application")
 data class ConfigProperties(
     val excelImportMaster: String,
-    val excelReportA: String,
-    val excelReportB: String,
+    val excelReportGeneral: String,
+    val excelReportPermission: String,
+    val excelReportLogin: String,
     val existingHost: String,
     val irrValue: String
 )

@@ -227,7 +227,6 @@ class SurveyCompareService(
 
     fun downloadExcelTemplate(surveySportId: String): ResponseEntity<Any> {
         var response: ResponseEntity<Any>
-        println(properties.excelReportA)
         try {
             val data = getSurveySport(surveySportId) as Map<*, *>
             if (data.isNotEmpty()) {

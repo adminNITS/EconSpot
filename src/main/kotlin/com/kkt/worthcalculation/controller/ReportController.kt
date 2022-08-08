@@ -21,9 +21,15 @@ public class ReportController(val service: ReportService) {
     }
 
     @GetMapping("/permission")
-    fun getListImport(): ResponseEntity<Any> {
+    fun getPermissionReport(): ResponseEntity<Any> {
         MDC.put("trackId", UUID.randomUUID().toString())
         return service.downloadReportPermission()
+    }
+
+    @GetMapping("/login")
+    fun getLoginReport(): ResponseEntity<Any> {
+        MDC.put("trackId", UUID.randomUUID().toString())
+        return service.downloadReportLogin()
     }
 
 
