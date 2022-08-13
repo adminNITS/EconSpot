@@ -229,6 +229,7 @@ class SurveyCompareService(
         var response: ResponseEntity<Any>
         try {
             val data = getSurveySport(surveySportId) as Map<*, *>
+            val answerData = getAnswer(surveySportId) as Map<*, *>
             if (data.isNotEmpty()) {
                 val sportTour = data["sportTour"] as Map<*, *>
                 val province = data["province"] as Map<*, *>
@@ -408,7 +409,7 @@ class SurveyCompareService(
         return response["data"]
     }
 
-    private fun getUser(userId: String): Any? {
+    private fun getUser(userId: String): Any {
         val restTemplate = RestTemplate()
         val response = restTemplate.getForEntity("${properties.existingHost}/rest/user/$userId", Any::class.java).body as Map<*, *>
         val ss = response["data"] as Map<*, *>
@@ -417,6 +418,12 @@ class SurveyCompareService(
             lname = ss["lname"].toString(),
             email = ss["email"].toString()
         )
+    }
+
+    private fun getAnswer(surveySportId: String): Any? {
+        val restTemplate = RestTemplate()
+        val response = restTemplate.getForEntity("${properties.existingHostMongo}/surveyAnswer/$surveySportId", Any::class.java).body
+        return response
     }
 
     private fun calNetWorth(budgetValue: String?, economicValue: String?): String {

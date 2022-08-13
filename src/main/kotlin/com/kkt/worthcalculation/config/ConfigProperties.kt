@@ -11,5 +11,6 @@ data class ConfigProperties(
     val excelReportPermission: String,
     val excelReportLogin: String,
     val existingHost: String,
+    val existingHostMongo: String,
     val irrValue: String
 )
