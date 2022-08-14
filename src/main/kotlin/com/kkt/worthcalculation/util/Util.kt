@@ -1,10 +1,7 @@
 package com.kkt.worthcalculation.util
 
 import com.kkt.worthcalculation.handle.ImportExcelException
-import com.kkt.worthcalculation.model.ExcelRowData
-import com.kkt.worthcalculation.model.ReportExcelGeneral
-import com.kkt.worthcalculation.model.ReportExcelLogin
-import com.kkt.worthcalculation.model.ReportExcelPermission
+import com.kkt.worthcalculation.model.*
 import org.apache.poi.ss.usermodel.FormulaEvaluator
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.WorkbookFactory
@@ -74,13 +71,34 @@ class Util {
             }
         }
 
-        fun writeExcelFile(file: InputStream, sportTournamentName: String, location: String, startDate: String, endDate: String): ByteArray {
+        fun writeExcelFile(file: InputStream, data: GenerateExcelData): ByteArray {
             try {
                 val xlWb = WorkbookFactory.create(file)
                 val xlWs = xlWb.getSheetAt(0)
-                xlWs.getRow(4).getCell(1).setCellValue(sportTournamentName)
-                xlWs.getRow(4).getCell(2).setCellValue(location)
-                xlWs.getRow(4).getCell(3).setCellValue("$startDate - $endDate")
+                xlWs.getRow(4).getCell(1).setCellValue(data.b5)
+                xlWs.getRow(4).getCell(2).setCellValue(data.c5)
+                xlWs.getRow(4).getCell(3).setCellValue(data.d5)
+                xlWs.getRow(4).getCell(5).setCellValue(data.f5.toDouble())
+                xlWs.getRow(4).getCell(6).setCellValue(data.g5.toDouble())
+                xlWs.getRow(4).getCell(10).setCellValue(data.k5.toDouble())
+                xlWs.getRow(4).getCell(11).setCellValue(data.l5.toDouble())
+                xlWs.getRow(4).getCell(12).setCellValue(data.m5.toDouble())
+                xlWs.getRow(4).getCell(13).setCellValue(data.n5.toDouble())
+                xlWs.getRow(4).getCell(14).setCellValue(data.o5.toDouble())
+                xlWs.getRow(4).getCell(15).setCellValue(data.p5.toDouble())
+                xlWs.getRow(4).getCell(18).setCellValue(data.s5.toDouble())
+                xlWs.getRow(4).getCell(19).setCellValue(data.t5.toDouble())
+                xlWs.getRow(4).getCell(20).setCellValue(data.u5.toDouble())
+                xlWs.getRow(4).getCell(21).setCellValue(data.v5.toDouble())
+                xlWs.getRow(4).getCell(22).setCellValue(data.w5.toDouble())
+                xlWs.getRow(4).getCell(23).setCellValue(data.x5.toDouble())
+                xlWs.getRow(4).getCell(24).setCellValue(data.y5.toDouble())
+                xlWs.getRow(4).getCell(25).setCellValue(data.z5.toDouble())
+                xlWs.getRow(4).getCell(28).setCellValue(data.ac5.toDouble())
+                xlWs.getRow(4).getCell(29).setCellValue(data.ad5.toDouble())
+                xlWs.getRow(4).getCell(30).setCellValue(data.ae5.toDouble())
+                xlWs.getRow(4).getCell(32).setCellValue(data.ag5.toDouble())
+                xlWs.getRow(4).getCell(40).setCellValue(data.ao5.toDouble())
                 val out = ByteArrayOutputStream()
                 xlWb.write(out)
                 return out.toByteArray()
