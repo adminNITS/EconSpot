@@ -28,29 +28,36 @@ class ReportService(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass.name)
 
-    fun downloadReportGeneral(): ResponseEntity<Any> {
+    fun downloadReportGeneral(startDate: String, endDate: String): ResponseEntity<Any> {
         var response: ResponseEntity<Any>
         try {
             val data = getSurveySport() ?: throw Exception("Excel not found!!")
+
+            val dateStart = Util.convertStringToDate(startDate)
+            val dateEnd = Util.convertStringToDate(endDate)
+
             val fileImportMaster: InputStream = ByteArrayInputStream(Base64.getDecoder().decode(properties.excelReportGeneral.toByteArray()))
             val filename: String = URLEncoder.encode("Report-ข้อมูลพื้นฐาน.xlsx", "UTF-8");
             val listExcelGeneral: MutableList<ReportExcelGeneral> = mutableListOf()
             for (s: Map<*, *> in data) {
-                val sportAct = s?.get("sportAct") as Map<*, *>
-                val sportType = s?.get("sportType") as Map<*, *>
-                val createUser = s?.get("createUser") as Map<*, *>
-                val updateUser = s?.get("updateUser") as Map<*, *>?
-                listExcelGeneral.add(
-                    ReportExcelGeneral(
-                        activityType = sportAct["sportActName"].toString(),
-                        sportType = sportType["sportTypeName"].toString(),
-                        name = s["sportTourName"].toString(),
-                        createDate = Util.convertDateTimeFormatTH(s["createDate"].toString()),
-                        createBy = "${createUser["fname"]} ${createUser["lname"]}",
-                        updateDate = Util.convertDateTimeFormatTH(s["updateDate"].toString()),
-                        updateBy = "${updateUser?.get("fname") ?: ""} ${updateUser?.get("lname") ?: ""}"
+                val dateCreateData = Util.convertDateTimeFormat(s["createDate"].toString())
+                if (dateCreateData?.after(dateStart) == true && dateCreateData.before(dateEnd)) {
+                    val sportAct = s?.get("sportAct") as Map<*, *>
+                    val sportType = s?.get("sportType") as Map<*, *>
+                    val createUser = s?.get("createUser") as Map<*, *>
+                    val updateUser = s?.get("updateUser") as Map<*, *>?
+                    listExcelGeneral.add(
+                        ReportExcelGeneral(
+                            activityType = sportAct["sportActName"].toString(),
+                            sportType = sportType["sportTypeName"].toString(),
+                            name = s["sportTourName"].toString(),
+                            createDate = Util.convertDateTimeFormatTH(s["createDate"].toString()),
+                            createBy = "${createUser["fname"]} ${createUser["lname"]}",
+                            updateDate = Util.convertDateTimeFormatTH(s["updateDate"].toString()),
+                            updateBy = "${updateUser?.get("fname") ?: ""} ${updateUser?.get("lname") ?: ""}"
+                        )
                     )
-                )
+                }
             }
 
 
@@ -76,31 +83,36 @@ class ReportService(
         return response
     }
 
-    fun downloadReportPermission(): ResponseEntity<Any> {
+    fun downloadReportPermission(startDate: String, endDate: String): ResponseEntity<Any> {
         var response: ResponseEntity<Any>
         try {
             val data = getListUser() ?: throw Exception("Excel not found!!")
+            val dateStart = Util.convertStringToDate(startDate)
+            val dateEnd = Util.convertStringToDate(endDate)
             val fileImportMaster: InputStream = ByteArrayInputStream(Base64.getDecoder().decode(properties.excelReportPermission.toByteArray()))
             val filename: String = URLEncoder.encode("Report-ข้อมูลผู้ดูแลระบบ.xlsx", "UTF-8");
             val listExcelPermission: MutableList<ReportExcelPermission> = mutableListOf()
             for (s: Map<*, *> in data) {
-                val role = s["role"] as Map<*, *>
-                val createUser = s?.get("createUser") as Map<*, *>
-                val updateUser = s?.get("updateUser") as Map<*, *>?
-                convertRoleString(role)
-                listExcelPermission.add(
-                    ReportExcelPermission(
-                        employeeCode = s["userId"].toString(),
-                        employeeName = s["fname"].toString() + " " + s["lname"].toString(),
-                        groupType = role["roleName"].toString(),
-                        permission = convertRoleString(role),
-                        status = if (s["status"]?.equals("1") == true) "Active" else "Inactive",
-                        createDate = Util.convertDateTimeFormatTH(s["createDate"].toString()),
-                        createBy = ("${createUser["fname"]} ${createUser["lname"]}"),
-                        updateDate = Util.convertDateTimeFormatTH(s["updateDate"].toString()),
-                        updateBy = ("${updateUser?.get("fname") ?: ""} ${updateUser?.get("lname") ?: ""}")
+                val dateCreateData = Util.convertDateTimeFormat(s["createDate"].toString())
+                if (dateCreateData?.after(dateStart) == true && dateCreateData.before(dateEnd)) {
+                    val role = s["role"] as Map<*, *>
+                    val createUser = s?.get("createUser") as Map<*, *>
+                    val updateUser = s?.get("updateUser") as Map<*, *>?
+                    convertRoleString(role)
+                    listExcelPermission.add(
+                        ReportExcelPermission(
+                            employeeCode = s["userId"].toString(),
+                            employeeName = s["fname"].toString() + " " + s["lname"].toString(),
+                            groupType = role["roleName"].toString(),
+                            permission = convertRoleString(role),
+                            status = if (s["status"]?.equals("1") == true) "Active" else "Inactive",
+                            createDate = Util.convertDateTimeFormatTH(s["createDate"].toString()),
+                            createBy = ("${createUser["fname"]} ${createUser["lname"]}"),
+                            updateDate = Util.convertDateTimeFormatTH(s["updateDate"].toString()),
+                            updateBy = ("${updateUser?.get("fname") ?: ""} ${updateUser?.get("lname") ?: ""}")
+                        )
                     )
-                )
+                }
             }
 
 
@@ -123,10 +135,12 @@ class ReportService(
         return response
     }
 
-    fun downloadReportLogin(): ResponseEntity<Any> {
+    fun downloadReportLogin(startDate: String, endDate: String): ResponseEntity<Any> {
         var response: ResponseEntity<Any>
         try {
-            val data = logLoginRepository.findAll()
+            val dateStart = Util.convertStringToDate(startDate)
+            val dateEnd = Util.convertStringToDate(endDate)
+            val data = logLoginRepository.searchAllByCreateDateBetween(dateStart, dateEnd)
             val fileImportMaster: InputStream = ByteArrayInputStream(Base64.getDecoder().decode(properties.excelReportLogin.toByteArray()))
             val filename: String = URLEncoder.encode("Report-ข้อมูลผู้เข้าใช้งาน.xlsx", "UTF-8");
             val listExcelLogin: MutableList<ReportExcelLogin> = mutableListOf()

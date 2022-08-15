@@ -263,6 +263,13 @@ class Util {
             return sdf2.format(date)
         }
 
+        fun convertDateTimeFormat(dateStr: String?): Date? {
+            if (dateStr.equals("null")) return null
+            val sdf1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+            return sdf1.parse(dateStr)
+        }
+
+
         fun convertDateTimeFormat(date: Date): String {
             val sdf2 = SimpleDateFormat("dd/MM/yyyy HH:mm")
             return sdf2.format(date)

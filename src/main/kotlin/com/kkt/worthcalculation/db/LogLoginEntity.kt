@@ -47,4 +47,5 @@ data class LogLoginEntity(
 @Repository
 interface LogLoginRepository : JpaRepository<LogLoginEntity, String> {
     fun findAllByIdAndEmployeeId(id: String, employeeId: String): List<LogLoginEntity>
+    fun searchAllByCreateDateBetween(startDate: Date?, endDate: Date?): List<LogLoginEntity>
 }
