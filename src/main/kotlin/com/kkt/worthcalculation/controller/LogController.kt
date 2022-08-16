@@ -8,16 +8,14 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @RequestMapping("api/v2/log")
 @RestController
+@CrossOrigin
 class LogController(val logLoginRepository: LogLoginRepository) {
     private val logger = LoggerFactory.getLogger(javaClass.name)
 

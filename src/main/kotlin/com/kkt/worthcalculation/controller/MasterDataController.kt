@@ -13,6 +13,7 @@ import javax.validation.Valid
 
 @RequestMapping("api/v2/master")
 @RestController
+@CrossOrigin
 class MasterDataController(val masterDataService: MasterDataService) {
 
     private val logger = LoggerFactory.getLogger(javaClass.name)
