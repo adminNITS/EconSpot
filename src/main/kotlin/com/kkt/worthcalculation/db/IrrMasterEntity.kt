@@ -15,7 +15,7 @@ data class IrrMasterEntity(
     var id: String? = null,
 
     @Column(name = "interest", nullable = false, length = 10)
-    var interest: String? = null,
+    var interest: String,
 
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -54,4 +54,5 @@ data class IrrMasterEntity(
 
 @Repository
 interface IrrMasterRepository : JpaRepository<IrrMasterEntity, String>, JpaSpecificationExecutor<IrrMasterEntity> {
+    fun searchTopByEffectiveDateBeforeOrderByEffectiveDateDesc(startDate: Date): IrrMasterEntity
 }

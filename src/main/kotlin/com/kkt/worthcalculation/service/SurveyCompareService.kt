@@ -2,10 +2,7 @@ package com.kkt.worthcalculation.service
 
 import com.kkt.worthcalculation.config.ConfigProperties
 import com.kkt.worthcalculation.constant.TextConstant
-import com.kkt.worthcalculation.db.SportTournamentInfoExcelEntity
-import com.kkt.worthcalculation.db.SportTournamentInfoExcelRepository
-import com.kkt.worthcalculation.db.SurveySportEntity
-import com.kkt.worthcalculation.db.SurveySportRepository
+import com.kkt.worthcalculation.db.*
 import com.kkt.worthcalculation.handle.ImportExcelException
 import com.kkt.worthcalculation.model.ExcelData
 import com.kkt.worthcalculation.model.GenerateExcelData
@@ -35,14 +32,14 @@ import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
 import javax.persistence.criteria.Predicate
 import javax.persistence.criteria.Root
-import kotlin.collections.ArrayList
 
 
 @Service
 class SurveyCompareService(
     private val sportTourRepo: SportTournamentInfoExcelRepository,
     private val surveySportRepo: SurveySportRepository,
-    private val properties: ConfigProperties
+    private val properties: ConfigProperties,
+    private val irrMasterRepository: IrrMasterRepository
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass.name)
@@ -735,8 +732,9 @@ class SurveyCompareService(
     }
 
     private fun calNetWorth(budgetValue: String?, economicValue: String?): String {
-        try {
-            val irr1 = 1 + properties.irrValue.toDouble()
+        return try {
+            val d = irrMasterRepository.searchTopByEffectiveDateBeforeOrderByEffectiveDateDesc(Date())
+            val irr1 = 1 + (d.interest.toDouble())
             val ss = budgetValue?.toDouble()?.let { economicValue?.toDouble()?.minus(it) }
             val r = String.format("%.2f", ss?.div(irr1))
             logger.info("Bt: $economicValue")
@@ -744,10 +742,10 @@ class SurveyCompareService(
             logger.info("Bt - Ct = $ss")
             logger.info("1 + irr = $irr1")
             logger.info("(Bt - Ct)/1 + irr = $r")
-            return r
+            r
         } catch (e: Exception) {
             logger.error(e.message)
-            return "0"
+            "0"
         }
 
     }
