@@ -18,12 +18,12 @@ data class IrrMasterEntity(
     var interest: String? = null,
 
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MMMMM-yyyy", locale = "th")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "effectiveDate")
     var effectiveDate: Date? = null,
 
     @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MMMMM-yyyy", locale = "th")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "terminateDate")
     var terminateDate: Date? = null,
 
