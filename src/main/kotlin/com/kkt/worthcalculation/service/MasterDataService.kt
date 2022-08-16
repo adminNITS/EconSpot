@@ -1,8 +1,10 @@
 package com.kkt.worthcalculation.service
 
+import com.kkt.worthcalculation.config.ConfigProperties
 import com.kkt.worthcalculation.constant.TextConstant
 import com.kkt.worthcalculation.db.IrrMasterEntity
 import com.kkt.worthcalculation.db.IrrMasterRepository
+import com.kkt.worthcalculation.model.User
 import com.kkt.worthcalculation.model.client.Pagination
 import com.kkt.worthcalculation.model.client.RequestMasterIRRModel
 import com.kkt.worthcalculation.model.client.ResponseModel
@@ -14,12 +16,13 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestTemplate
 import java.time.LocalDateTime
 import java.util.*
 
 
 @Service
-class MasterDataService(val irrMasterRepo: IrrMasterRepository) {
+class MasterDataService(val irrMasterRepo: IrrMasterRepository, val properties: ConfigProperties) {
 
     private val logger = LoggerFactory.getLogger(javaClass.name)
 
@@ -29,6 +32,12 @@ class MasterDataService(val irrMasterRepo: IrrMasterRepository) {
         try {
             val pageable: Pageable = PageRequest.of(pagination.page - 1, pagination.pageSize, Sort.by(Sort.Direction.DESC, "effectiveDate"))
             val result = irrMasterRepo.findAll(pageable)
+            if (!result.isEmpty) {
+                for (x in result.get()) {
+                    x.userCreateBy = getUser(x.createBy)
+                    x.userUpdateBy = getUser(x.updateBy)
+                }
+            }
             response = ResponseEntity.ok(
                 ResponseModel(
                     message = TextConstant.RESP_SUCCESS_DESC,
@@ -43,6 +52,7 @@ class MasterDataService(val irrMasterRepo: IrrMasterRepository) {
                     )
                 )
             )
+
         } catch (e: Exception) {
             logger.error(e.message)
             response = ResponseEntity.internalServerError().body(
@@ -72,8 +82,9 @@ class MasterDataService(val irrMasterRepo: IrrMasterRepository) {
                     createDate = Date(),
                     updateBy = null,
                     updateDate = null,
-
-                    )
+                    userCreateBy = null,
+                    userUpdateBy = null
+                )
             )
             response = ResponseEntity.ok(
                 ResponseModel(
@@ -114,8 +125,9 @@ class MasterDataService(val irrMasterRepo: IrrMasterRepository) {
                         createDate = data.get().createDate,
                         updateBy = req.actionUserId,
                         updateDate = Date(),
-
-                        )
+                        userCreateBy = null,
+                        userUpdateBy = null
+                    )
                 )
                 response = ResponseEntity.ok(
                     ResponseModel(
@@ -180,5 +192,17 @@ class MasterDataService(val irrMasterRepo: IrrMasterRepository) {
             )
         }
         return response
+    }
+
+    private fun getUser(userId: String?): Any? {
+        if (userId == null) return null
+        val restTemplate = RestTemplate()
+        val response = restTemplate.getForEntity("${properties.existingHost}/rest/user/$userId", Any::class.java).body as Map<*, *>
+        val ss = response["data"] as Map<*, *>
+        return User(
+            fname = ss["fname"].toString(),
+            lname = ss["lname"].toString(),
+            email = ss["email"].toString()
+        )
     }
 }

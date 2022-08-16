@@ -41,7 +41,13 @@ data class IrrMasterEntity(
     var updateDate: Date? = null,
 
     @Column(name = "updateBy", length = 256)
-    var updateBy: String? = null
+    var updateBy: String? = null,
+
+    @Transient
+    var userCreateBy: Any?,
+
+    @Transient
+    var userUpdateBy: Any?
 ) {
 
 }
