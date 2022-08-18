@@ -229,7 +229,7 @@ class SurveyCompareService(
         try {
             val data = getSurveySport(surveySportId) as Map<*, *>
             val answerData = getAnswer(surveySportId) as ArrayList<Map<*, *>>
-            var dataExcel: GenerateExcelData? = null
+            var dataExcel: GenerateExcelData = GenerateExcelData()
 
             if (answerData.isNotEmpty()) {
                 val s01 = answerData.filter { it -> it["surveyMasterId"].toString() == "S01" }
@@ -519,19 +519,13 @@ class SurveyCompareService(
                 val location: String = province["provinceName"].toString()
                 val startDate: String = Util.convertDateFormatTH(data["startDate"].toString())
                 val endDate: String = Util.convertDateFormatTH(data["endDate"].toString())
-                if (dataExcel != null) {
-                    dataExcel.b5 = sportTournamentName
-                    dataExcel.c5 = location
-                    dataExcel.d5 = "$startDate - $endDate"
-                }
                 val fileImportMaster: InputStream = ByteArrayInputStream(Base64.getDecoder().decode(properties.excelImportMaster.toByteArray()))
                 var excelData: ByteArray? = null
-                if (dataExcel != null) {
-                    dataExcel.b5 = sportTournamentName
-                    dataExcel.c5 = location
-                    dataExcel.d5 = "$startDate - $endDate"
-                    excelData = writeExcelFile(fileImportMaster, dataExcel)
-                }
+                dataExcel.b5 = sportTournamentName
+                dataExcel.c5 = location
+                dataExcel.d5 = "$startDate - $endDate"
+                excelData = writeExcelFile(fileImportMaster, dataExcel)
+
                 val filename: String = URLEncoder.encode("template-$sportTournamentName-$location-$startDate-$endDate.xlsx", "UTF-8")
                 response = ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(TextConstant.EXCEL_SHEET_CONTENT_TYPE))
